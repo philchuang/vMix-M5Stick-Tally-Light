@@ -1,0 +1,6 @@
+{
+    "board": "esp32:esp32:m5stick-c",
+    "configuration": "PartitionScheme=default,UploadSpeed=1500000,DebugLevel=none",
+    "port": "COM3",
+    "sketch": "src\\vmix_tally_app\\vmix_tally_app.ino"
+}
