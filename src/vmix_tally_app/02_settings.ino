@@ -5,14 +5,12 @@
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
 // #include <WiFi.h>
-// #include "libs\AppSettings.h"
+// #include "AppSettings.h"
 // #include "01_config.ino"
 // #include "99_utils.ino"
 // byte currentScreen;
 // unsigned int conn_Reconnections = 0;
 // intellisense support only, comment out before building
-
-AppSettings settings = AppSettings(EEPROM_SIZE);
 
 // Load settings from EEPROM
 void settings_load()

@@ -1,13 +1,23 @@
 // intellisense support only, comment out before building
 // #define ESP32
+// #define VMIX_CONN_RETRIES 3
+// #define SCREEN_START 0
+// #define SCREEN_TALLY 2
+// #define SCREEN_TALLY_NR 3
+// #define SCREEN_ERROR 255
+// #define TALLY_NONE ' '
+// #define TALLY_SAFE '0'
+// #define TALLY_LIVE '1'
+// #define TALLY_PRE '2'
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
 // #include <WiFi.h>
-// #include "vmix_tally_app.ino"
 // #include "01_config.ino"
 // #include "02_settings.ino"
 // #include "03_app.ino"
 // #include "99_utils.ino"
+// byte currentScreen = SCREEN_START;
+// char currentTallyState = TALLY_NONE;
 // intellisense support only, comment out before building
 
 #define VMIX_API_SUBSCRIBE_TALLY "SUBSCRIBE TALLY"
@@ -15,6 +25,8 @@
 #define VMIX_API_GET_TALLY "TALLY"
 #define VMIX_API_GET_TALLY_RESPONSE_PREFIX "TALLY OK "
 #define VMIX_API_GET_VERSION_RESPONSE_PREFIX "VERSION OK "
+
+WiFiClient vmix_client;
 
 // Connect to vMix instance
 bool vmix_connect(const char *addr, unsigned short port)
@@ -54,8 +66,8 @@ bool vmix_connect(const char *addr, unsigned short port)
 
       continue;
     }
-    Serial.println("Connection opened.");
 
+    Serial.println("Connection opened.");
     Serial.println("Subscribing to tally events...");
     vmix_client.println(VMIX_API_SUBSCRIBE_TALLY);
 
@@ -63,6 +75,11 @@ bool vmix_connect(const char *addr, unsigned short port)
   } while (true);
 
   return false;
+}
+
+bool vmix_isAlive()
+{
+  return !vmix_client.available() && !vmix_client.connected();
 }
 
 void vmix_refreshTally()
@@ -73,9 +90,15 @@ void vmix_refreshTally()
   }
 }
 
-// Handle incoming data
-void vmix_handleData(String &data, unsigned short tally)
+void vmix_checkForResponses(unsigned short tally)
 {
+  if (!vmix_client.available())
+  {
+    return;
+  }
+
+  String data = vmix_client.readStringUntil('\r\n');
+
   if (data.indexOf(VMIX_API_GET_TALLY_RESPONSE_PREFIX) == 0)
   {
     char newState = data.charAt(tally + 8); // response is like "TALLY OK 00000000"

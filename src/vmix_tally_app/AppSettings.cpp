@@ -86,8 +86,6 @@ void AppSettings::setVmixTally(unsigned short tally)
 
 char *AppSettings::getVmixAddressWithPort()
 {
-    Serial.println(_pimpl->_VmixAddress);
-    Serial.println(_pimpl->_VmixPort);
     char *full = new char[VmixAddrMaxLength + 1 + 5];
     sprintf(full, "%s:%u", _pimpl->_VmixAddress, _pimpl->_VmixPort);
     return full;

@@ -3,10 +3,6 @@
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
 // #include <WiFi.h>
-// #include "vmix_tally_app.ino"
-// #include "01_config.ino"
-// #include "02_settings.ino"
-// #include "05_vmix.ino"
 // #include "99_utils.ino"
 // intellisense support only, comment out before building
 

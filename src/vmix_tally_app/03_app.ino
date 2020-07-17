@@ -1,35 +1,35 @@
 // intellisense support only, comment out before building
 // #define ESP32
-// #include <esp32-hal.h>
+// #define TALLY_NONE ' '
+// #define SCREEN_TALLY 2
+// #define SCREEN_TALLY_NR 3
+// #define SCREEN_ERROR 255
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
 // #include <SPIFFS.h>
 // #include <EEPROM.h>
 // #include <WiFi.h>
 // #include <PinButton.h>
-// #include "libs/AppSettings.h"
-// #include "vmix_tally_app.ino"
+// #include "AppSettings.h"
 // #include "01_config.ino"
 // #include "02_settings.ino"
 // #include "04_wifi.ino"
 // #include "05_vmix.ino"
 // #include "99_utils.ino"
 // AppSettings settings = AppSettings(EEPROM_SIZE);
+// char currentTallyState = TALLY_NONE;
 // intellisense support only, comment out before building
-
-WiFiClient vmix_client; // global variable
-// WebServer server(80);  // global variable
 
 PinButton btnM5(37);
 PinButton btnSide(39);
 
 // char wifi_apDeviceName[32];  // global variable
-bool wifi_apEnabled = false; // global variable
+// bool wifi_apEnabled = false; // global variable
 // char wifi_apPass[64];        // global variable
 
-const unsigned long conn_KeepAliveCheckMs = 5000; // move to global constant
+bool wifi_isConnected = false;
+bool vmix_isConnected = false;
 unsigned long conn_NextKeepAliveCheck = 0;
-const unsigned long conn_VmixResponseCheckMs = 100; // move to global constant
 unsigned long conn_NextVmixResponseCheck = 0;
 
 void setup()
@@ -198,19 +198,15 @@ void loop()
     bool performVmixResponseCheck = timestamp > conn_NextVmixResponseCheck;
     if (performVmixResponseCheck)
     {
-      conn_NextVmixResponseCheck = timestamp + conn_VmixResponseCheckMs;
-      if (vmix_client.available())
-      {
-        String data = vmix_client.readStringUntil('\r\n');
-        vmix_handleData(data, settings.getVmixTally());
-      }
+      conn_NextVmixResponseCheck = timestamp + VMIX_RESPONSE_MS;
+      vmix_checkForResponses(settings.getVmixTally());
     }
 
     bool performKeepAliveCheck = timestamp > conn_NextKeepAliveCheck;
     if (performKeepAliveCheck)
     {
-      conn_NextKeepAliveCheck = timestamp + conn_KeepAliveCheckMs;
-      if (!wifi_apEnabled && !vmix_client.available() && !vmix_client.connected())
+      conn_NextKeepAliveCheck = timestamp + VMIX_KEEPALIVE_MS;
+      if (!vmix_isAlive())
       {
         Serial.println("Disconnected from vMix, reconnecting...");
         conn_Reconnections++;
