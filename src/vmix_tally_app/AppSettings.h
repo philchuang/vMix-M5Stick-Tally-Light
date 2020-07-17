@@ -4,10 +4,15 @@
 #ifndef AppSettings_h
 #define AppSettings_h
 
+#define AppSettings_WifiSsidMaxLength 64
+#define AppSettings_WifiPassMaxLength 64
+#define AppSettings_VmixAddrMaxLength 64
+#define AppSettings_Size 200
+
 class AppSettings
 {
 public:
-    AppSettings(unsigned short eepromSize);
+    AppSettings();
     ~AppSettings();
     char *getWifiSsid();
     void setWifiSsid(char *ssid);
@@ -20,9 +25,7 @@ public:
     unsigned short getVmixTally();
     void setVmixTally(unsigned short tally);
     char *getVmixAddressWithPort();
-    bool load();
-    void save();
-    void clear();
+    bool isValid();
 
 private:
     class Impl;

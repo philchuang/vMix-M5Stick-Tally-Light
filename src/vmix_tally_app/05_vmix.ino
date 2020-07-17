@@ -50,13 +50,6 @@ bool vmix_connect(const char *addr, unsigned short port)
     {
       if (retryAttempt == maxRetry)
       {
-        cls();
-        settings_print();
-        M5.Lcd.println();
-        M5.Lcd.println("Could not connect!");
-        M5.Lcd.println("Hold M5 btn to restart.");
-        M5.Lcd.println("Hold side btn to reset.");
-        currentScreen = SCREEN_ERROR;
         return false;
       }
 

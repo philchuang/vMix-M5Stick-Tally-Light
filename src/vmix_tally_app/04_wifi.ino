@@ -6,7 +6,7 @@
 // #include "99_utils.ino"
 // intellisense support only, comment out before building
 
-bool wifi_connect(const char* ssid, const char* passphrase)
+bool wifi_connect(const char *ssid, const char *passphrase)
 {
   cls();
   M5.Lcd.setTextSize(1);
@@ -16,8 +16,10 @@ bool wifi_connect(const char* ssid, const char* passphrase)
   Serial.printf("Connecting to %s with %s...", ssid, passphrase);
   M5.Lcd.print("Connecting to WiFi...");
 
-  if (WiFi.status() == WL_CONNECTED) {
+  if (WiFi.status() == WL_CONNECTED)
+  {
     WiFi.disconnect();
+    delay(1000);
   }
 
   WiFi.mode(WIFI_STA);
@@ -60,6 +62,11 @@ bool wifi_connect(const char* ssid, const char* passphrase)
 
   // wifi_apStart();
   return false;
+}
+
+bool wifi_isAlive()
+{
+  return WiFi.status() == WL_CONNECTED;
 }
 
 // void wifi_apStart()

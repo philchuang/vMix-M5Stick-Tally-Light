@@ -4,31 +4,25 @@
 #include <EEPROM.h>
 #include <M5StickC.h>
 
-#define WifiSsidMaxLength 64
-#define WifiPassMaxLength 64
-#define VmixAddrMaxLength 64
-
 struct AppSettings::Impl
 {
-    Impl(unsigned short eepromSize)
+    Impl()
     {
-        _EepromSize = eepromSize;
     }
 
     ~Impl()
     {
     }
 
-    unsigned short _EepromSize;
-    char *_WifiSsid = new char[WifiSsidMaxLength];
-    char *_WifiPassphrase = new char[WifiPassMaxLength];
-    char *_VmixAddress = new char[VmixAddrMaxLength];
+    char *_WifiSsid = new char[AppSettings_WifiSsidMaxLength];
+    char *_WifiPassphrase = new char[AppSettings_WifiPassMaxLength];
+    char *_VmixAddress = new char[AppSettings_VmixAddrMaxLength];
     unsigned short _VmixPort;
     unsigned short _VmixTally;
 };
 
-AppSettings::AppSettings(unsigned short eepromSize)
-    : _pimpl(new Impl(eepromSize))
+AppSettings::AppSettings()
+    : _pimpl(new Impl())
 {
 }
 
@@ -41,7 +35,7 @@ char *AppSettings::getWifiSsid()
 
 void AppSettings::setWifiSsid(char *ssid)
 {
-    _pimpl->_WifiSsid = ssid;
+    _pimpl->_WifiSsid = strdup(ssid);
 }
 
 char *AppSettings::getWifiPassphrase()
@@ -51,7 +45,7 @@ char *AppSettings::getWifiPassphrase()
 
 void AppSettings::setWifiPassphrase(char *passphrase)
 {
-    _pimpl->_WifiPassphrase = passphrase;
+    _pimpl->_WifiPassphrase = strdup(passphrase);
 }
 
 char *AppSettings::getVmixAddress()
@@ -61,7 +55,7 @@ char *AppSettings::getVmixAddress()
 
 void AppSettings::setVmixAddress(char *address)
 {
-    _pimpl->_VmixAddress = address;
+    _pimpl->_VmixAddress = strdup(address);
 }
 
 unsigned short AppSettings::getVmixPort()
@@ -86,71 +80,17 @@ void AppSettings::setVmixTally(unsigned short tally)
 
 char *AppSettings::getVmixAddressWithPort()
 {
-    char *full = new char[VmixAddrMaxLength + 1 + 5];
+    char *full = new char[AppSettings_VmixAddrMaxLength + 1 + 5];
     sprintf(full, "%s:%u", _pimpl->_VmixAddress, _pimpl->_VmixPort);
     return full;
 }
 
-bool AppSettings::load()
+bool AppSettings::isValid()
 {
-    unsigned long ptr = 0;
-
-    EEPROM.readString(ptr, _pimpl->_WifiSsid, WifiSsidMaxLength);
-    ptr += WifiSsidMaxLength;
-
-    EEPROM.readString(ptr, _pimpl->_WifiPassphrase, WifiPassMaxLength);
-    ptr += WifiPassMaxLength;
-
-    EEPROM.readString(ptr, _pimpl->_VmixAddress, VmixAddrMaxLength);
-    ptr += VmixAddrMaxLength;
-
-    _pimpl->_VmixPort = EEPROM.readUShort(ptr);
-    ptr += 2;
-
-    _pimpl->_VmixTally = EEPROM.readUShort(ptr);
-    ptr += 2;
-
     if (strlen(_pimpl->_WifiSsid) == 0 || strlen(_pimpl->_WifiPassphrase) == 0 || strlen(_pimpl->_VmixAddress) == 0 || _pimpl->_VmixPort == 0u || _pimpl->_VmixTally == 0u)
     {
         return false;
     }
 
     return true;
-}
-
-void AppSettings::save()
-{
-    this->clear();
-
-    unsigned long ptr = 0;
-
-    EEPROM.writeString(ptr, _pimpl->_WifiSsid);
-    ptr += WifiSsidMaxLength;
-
-    EEPROM.writeString(ptr, _pimpl->_WifiPassphrase);
-    ptr += WifiPassMaxLength;
-
-    EEPROM.writeString(ptr, _pimpl->_VmixAddress);
-    ptr += VmixAddrMaxLength;
-
-    EEPROM.writeUShort(ptr, _pimpl->_VmixPort);
-    ptr += 2;
-
-    EEPROM.writeUShort(ptr, _pimpl->_VmixTally);
-    ptr += 2;
-
-    EEPROM.commit();
-}
-
-void AppSettings::clear()
-{
-    unsigned long ptr = 0;
-
-    for (int i = 0; i < (_pimpl->_EepromSize >> 3); i++)
-    {
-        EEPROM.writeULong64(ptr, 0);
-        ptr += 8;
-    }
-
-    EEPROM.commit();
 }

@@ -2,6 +2,7 @@
 // #define ESP32
 // #define LED_BUILTIN 10
 // #define EEPROM_SIZE 512
+// #define CLEAR_SETTINGS_ON_LOAD true
 // #define TALLY_NONE ' '
 // #define SCREEN_START 0
 // #define SCREEN_SETTINGS 1
@@ -23,7 +24,7 @@
 // #include "04_wifi.ino"
 // #include "05_vmix.ino"
 // #include "99_utils.ino"
-// AppSettings settings = AppSettings(EEPROM_SIZE);
+// AppSettings settings = AppSettings();
 // byte currentScreen = SCREEN_START;
 // char currentTallyState = TALLY_NONE;
 // unsigned int conn_Reconnections = 0;
@@ -63,7 +64,12 @@ void setup()
     imu_initialized = true;
   }
 
+  if (CLEAR_SETTINGS_ON_LOAD)
+  {
+    settings_clear();
+  }
   main_splash();
+  settings_load();
   main_start();
 
   // server.on("/", handle_root);
@@ -85,7 +91,6 @@ void main_splash()
 void main_start()
 {
   cls();
-  settings_load();
   // sprintf(wifi_apDeviceName, "vMix_Tally_%d", settings.tallyNumber);
   // sprintf(wifi_apPass, "%s%s", wifi_apDeviceName, "_access");
   // Serial.printf("wifi_apDeviceName: %s\n", wifi_apDeviceName);
@@ -93,11 +98,14 @@ void main_start()
 
   if (!main_reconnectWifi())
   {
+    main_showErrorScreen("Could not connect to wifi!");
+    vmix_isConnected = false;
     return;
   }
 
   if (!main_reconnectVmix())
   {
+    main_showErrorScreen("Could not connect to vMix!");
     return;
   }
 
@@ -110,8 +118,8 @@ bool main_reconnectWifi()
 
   if (!wifi_connect(settings.getWifiSsid(), settings.getWifiPassphrase()))
   {
-    Serial.printf("Unable to connect to %s\n!", settings.getWifiSsid());
-    M5.Lcd.printf("Unable to connect to %s\n!", settings.getWifiSsid());
+    Serial.printf("Unable to connect to %s!\n", settings.getWifiSsid());
+    M5.Lcd.printf("Unable to connect to %s!\n", settings.getWifiSsid());
     return false;
   }
 
@@ -154,12 +162,13 @@ void loop()
 
   main_checkOrientation(timestamp);
 
-  if (!main_handleButtons())
+  if (main_handleButtons())
   {
     return;
   }
 
   main_pollVmix(timestamp);
+  main_pollKeepAlive(timestamp);
 }
 
 void main_restart()
@@ -235,51 +244,10 @@ void main_updateOrientation(byte newRotation)
 
 bool main_handleButtons()
 {
-  bool breakLoop = true;
+  bool breakLoop = false;
 
   btnM5.update();
   btnSide.update();
-
-  // if (btnM5.isClick())
-  // {
-  //   Serial.printf("%u Click\n", 1);
-  // }
-  // if (btnM5.isDoubleClick())
-  // {
-  //   Serial.printf("%u DoubleClick\n", 1);
-  // }
-  // if (btnM5.isLongClick())
-  // {
-  //   Serial.printf("%u LongClick\n", 1);
-  // }
-  // if (btnM5.isReleased())
-  // {
-  //   Serial.printf("%u Released\n", 1);
-  // }
-  // if (btnM5.isSingleClick())
-  // {
-  //   Serial.printf("%u SingleClick\n", 1);
-  // }
-  // if (btnSide.isClick())
-  // {
-  //   Serial.printf("%u Click\n", 2);
-  // }
-  // if (btnSide.isDoubleClick())
-  // {
-  //   Serial.printf("%u DoubleClick\n", 2);
-  // }
-  // if (btnSide.isLongClick())
-  // {
-  //   Serial.printf("%u LongClick\n", 2);
-  // }
-  // if (btnSide.isReleased())
-  // {
-  //   Serial.printf("%u Released\n", 2);
-  // }
-  // if (btnSide.isSingleClick())
-  // {
-  //   Serial.printf("%u SingleClick\n", 2);
-  // }
 
   if (currentScreen == SCREEN_TALLY)
   {
@@ -315,16 +283,15 @@ bool main_handleButtons()
     {
       vmix_showTallyScreen(settings.getVmixTally());
     }
-    // TODO change long press to load alternate settings
-    else if (btnSide.isDoubleClick())
-    {
-      main_incrementTally();
-      settings_renderscreen();
-    }
     else if (btnSide.isLongClick())
     {
-      main_updateTally(1);
-      settings_renderscreen();
+      Serial.println("Swapping settings...");
+      if (settings_swap())
+      {
+        Serial.println("Settings swapped!");
+        main_restart();
+        breakLoop = true;
+      }
     }
   }
   else if (currentScreen == SCREEN_ERROR)
@@ -332,15 +299,24 @@ bool main_handleButtons()
     if (btnM5.isLongClick())
     {
       main_restart();
-      breakLoop = false;
+      breakLoop = true;
     }
     else if (btnSide.isLongClick())
     {
-      settings_clear();
-      settings_load();
+      settings_swap();
       main_restart();
-      breakLoop = false;
+      breakLoop = true;
     }
+    // else if (btnSide.isLongClick())
+    // {
+    //   settingsIdx = 1;
+    //   settings_clear();
+    //   settingsIdx = 0;
+    //   settings_clear();
+    //   settings_load();
+    //   main_restart();
+    //   breakLoop = true;
+    // }
   }
 
   return breakLoop;
@@ -356,16 +332,38 @@ void main_pollVmix(unsigned long timestamp)
       conn_NextVmixResponseCheck = timestamp + VMIX_RESPONSE_MS;
       vmix_checkForResponses(settings.getVmixTally());
     }
+  }
+}
 
-    bool performKeepAliveCheck = timestamp > conn_NextKeepAliveCheck;
-    if (performKeepAliveCheck)
+void main_pollKeepAlive(unsigned long timestamp)
+{
+  if (!wifi_isConnected && !vmix_isConnected)
+  {
+    return;
+  }
+
+  bool performKeepAliveCheck = timestamp > conn_NextKeepAliveCheck;
+  if (performKeepAliveCheck)
+  {
+    conn_NextKeepAliveCheck = timestamp + VMIX_KEEPALIVE_MS;
+    if (!wifi_isAlive())
     {
-      conn_NextKeepAliveCheck = timestamp + VMIX_KEEPALIVE_MS;
-      if (!vmix_isAlive())
+      Serial.println("Disconnected from wifi, reconnecting...");
+      if (!main_reconnectWifi())
       {
-        Serial.println("Disconnected from vMix, reconnecting...");
-        conn_Reconnections++;
-        main_reconnectVmix();
+        main_showErrorScreen("Could not reconnect to wifi!");
+        return;
+      }
+    }
+
+    if (!vmix_isAlive())
+    {
+      Serial.println("Disconnected from vMix, reconnecting...");
+      conn_Reconnections++;
+      if (!main_reconnectVmix())
+      {
+        main_showErrorScreen("Could not reconnect to vMix!");
+        return;
       }
     }
   }
@@ -389,4 +387,18 @@ void main_renderScreen()
   {
     // does nothing
   }
+}
+
+void main_showErrorScreen(const char *msg)
+{
+  Serial.printf("ERR: %s\n", msg);
+  cls();
+  M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx+1, MAX_SETTINGS_NR);
+  M5.Lcd.println();
+  M5.Lcd.println(msg);
+  M5.Lcd.println();
+  M5.Lcd.println("Hold M5 btn to restart.");
+  M5.Lcd.println("Hold side btn to swap settings.");
+  M5.Lcd.println("TODO Hold both to hard reset.");
+  currentScreen = SCREEN_ERROR;
 }
