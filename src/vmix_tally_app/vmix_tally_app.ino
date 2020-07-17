@@ -1,15 +1,3 @@
-/* TODOs
-  - battery indicator
-  - update readme
-  - OOP-ify
-    - vmix
-    - wifi
-    - app
-    - screens
-  - AP mode w/ config page
-  - if in preview, button press to quickplay input?
-*/
-
 #define ESP32
 
 #include <HardwareSerial.h>

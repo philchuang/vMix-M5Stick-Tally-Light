@@ -94,6 +94,7 @@ void vmix_checkForResponses(unsigned short tally)
   }
 
   String data = vmix_client.readStringUntil('\r\n');
+  Serial.printf("VMIX: %s\n", data);
 
   if (data.indexOf(VMIX_API_GET_TALLY_RESPONSE_PREFIX) == 0)
   {

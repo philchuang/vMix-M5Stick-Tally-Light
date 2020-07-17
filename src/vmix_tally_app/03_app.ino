@@ -292,7 +292,7 @@ bool main_handleButtons()
     }
     else if (btnSide.isLongClick())
     {
-      // TODO think of another feature
+      // TODO TCP: FUNCTION QuickPlay Input={tally}
     }
   }
   else if (currentScreen == SCREEN_TALLY_NR)

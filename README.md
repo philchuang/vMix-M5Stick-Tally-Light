@@ -1,35 +1,47 @@
 # vMix M5Stick-C Tally Light
 
 ![](working-example.gif)
+**TODO** update gif, add more pictures
 
 ## Getting started
 
 ### Step 1
-1.1 Follow the tutorial on the [M5Stack website](https://docs.m5stack.com/#/en/arduino/arduino_development).
 
-1.2 Copy the libraries that are used by this project (found in the `libs` folder) to your system.
-The default path is: `%userprofile%\Documents\Arduino\libraries`
+1. Follow the tutorial on the [M5Stack website](https://docs.m5stack.com/#/en/arduino/arduino_development).
+    1. Instead of Arduino IDE you can also use [Visual Studio Code](https://code.visualstudio.com/) with the [Arduino extension](https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino).
+1. Copy the libraries that are used by this project (found in the `libs` folder) to your system.
+The default path is: `%userprofile%\Documents\Arduino\libraries`, but could also be `%onedrive%\Documents\Arduino\libraries`.
 
 ### Step 2
-Change the following variables to your specific environment (found in `a_GLOBAL.ino`):
-*  WIFI_SSID
-*  WIFI_PASS
-*  VMIX_IP
-*  VMIX_PORT (default: 8099)
-*  TALLY_NR (What input number should the Tally listen to, default: 0)
+Copy `~\src\vmix_tally_app\01_config.ino.template` as `01_config.ino` and change the values to match your setup. The second set of settings are optional, uncomment and update them if needed.
 
 ### Step 3
-Upload to your device and check if it works.
+Upload to your device.
+
+## USAGE
+
+1. Turn on device
+1. Wait for wifi and vmix connection
+1. The first screen is the tally status
+    1. SAFE: input not in preview or live
+    1. PRE: input in preview
+    1. LIVE: input is live
+    1. ????: tally status unavailable
+    1. M5 button single-click: display the tally number screen
+1. The second screen is the tally number
+    1. M5 button single-click: display the connection settings screen
+    1. Side button double-click: increment the tally number
+    1. Side button long-click: reset tally number to 1
+1. The third screen is the settings
+    1. M5 button single-click: display the tally status screen
+    2. Side button long-click: load next settings and restart
 
 ## TODO
-* [x]  Press on M5 button will display IP Address for easy access
-* [ ]  Webserver for easy configuration
+* [ ]  Battery indicator
+* [ ]  Ability to trigger quickplay for selected input
+* [ ]  Hard-reset capability from settings or error screen
 * [ ]  Access Point mode when not connected to a WiFi network
-* [ ]  Save the data to the EEPROM
-* [ ]  When vMix closes, show on LCD
+* [ ]  Webserver for easy configuration
 
-### Good to know
-This is my very first C-project, if you have any suggestions on how to improve the code, please let me know.
-
-#### Thanks
-A massive thanks to [Thomas Mout](https://github.com/ThomasMout) for creating [Arduino vMix Tally](https://github.com/ThomasMout/Arduino-vMix-tally). This project is an extended version of his.
+## Thanks
+This project is a fork of [Guido Visser's vMix-M5Stick-Tally-Light](https://github.com/guido-visser/vMix-M5Stick-Tally-Light), who got the ball rolling.

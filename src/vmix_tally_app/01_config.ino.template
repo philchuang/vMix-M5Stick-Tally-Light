@@ -6,8 +6,10 @@
 #define SETTINGS0_VMIX_PORT 8099 // default TCP API port
 #define SETTINGS0_TALLY_NR 1 // initial tally number
 
+/*
 #define SETTINGS1_WIFI_SSID "your_wifi2"
 #define SETTINGS1_WIFI_PASS "wifi_pass2"
 #define SETTINGS1_VMIX_ADDR "192.168.2.100" // or hostname
 #define SETTINGS1_VMIX_PORT 8099 // default TCP API port
 #define SETTINGS1_TALLY_NR 2 // initial tally number
+*/
