@@ -1,8 +1,9 @@
 /* TODOs
   - OOP-ify
   - centered text
+  - switch to alternate settings
   - battery indicator
-  - if in preview, button press to quickplay input
+  - if in preview, button press to quickplay input?
 */
 
 #define ESP32

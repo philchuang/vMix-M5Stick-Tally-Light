@@ -274,6 +274,7 @@ bool main_handleButtons()
     {
       vmix_showTallyScreen(settings.getVmixTally());
     }
+    // TODO change long press to load alternate settings
     else if (btnSide.isDoubleClick())
     {
       main_incrementTally();

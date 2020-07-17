@@ -84,4 +84,5 @@ void settings_renderscreen() {
   M5.Lcd.println();
   M5.Lcd.println("Dbl-click side btn to increment Tally.");
   M5.Lcd.println("Hold side btn to clear settings.");
+  // TODO change long press to load alternate settings
 }
