@@ -1,9 +1,21 @@
-bool wifi_connect()
+// intellisense support only, comment out before building
+// #define ESP32
+// #include <HardwareSerial.h>
+// #include <M5StickC.h>
+// #include <WiFi.h>
+// #include "vmix_tally_app.ino"
+// #include "01_config.ino"
+// #include "02_settings.ino"
+// #include "05_vmix.ino"
+// #include "99_utils.ino"
+// intellisense support only, comment out before building
+
+bool wifi_connect(const char* ssid, const char* passphrase)
 {
   cls();
   M5.Lcd.setTextSize(1);
-  Serial.printf("SSID: %s\n", settings.wifi_ssid);
-  Serial.printf("Pass: %s\n", settings.wifi_pass);
+  Serial.printf("SSID: %s\n", ssid);
+  Serial.printf("Pass: %s\n", passphrase);
 
   Serial.print("Connecting to WiFi...");
   M5.Lcd.print("Connecting to WiFi...");
@@ -13,7 +25,7 @@ bool wifi_connect()
   }
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(settings.wifi_ssid, settings.wifi_pass);
+  WiFi.begin(ssid, passphrase);
 
   byte timeout = 10;
   while (WiFi.status() != WL_CONNECTED && timeout > 0)

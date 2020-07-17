@@ -1,3 +1,22 @@
+// intellisense support only, comment out before building
+// #define ESP32
+// #include <esp32-hal.h>
+// #include <HardwareSerial.h>
+// #include <M5StickC.h>
+// #include <SPIFFS.h>
+// #include <EEPROM.h>
+// #include <WiFi.h>
+// #include <PinButton.h>
+// #include "libs/AppSettings.h"
+// #include "vmix_tally_app.ino"
+// #include "01_config.ino"
+// #include "02_settings.ino"
+// #include "04_wifi.ino"
+// #include "05_vmix.ino"
+// #include "99_utils.ino"
+// AppSettings settings = AppSettings(EEPROM_SIZE);
+// intellisense support only, comment out before building
+
 WiFiClient vmix_client; // global variable
 // WebServer server(80);  // global variable
 
@@ -62,17 +81,17 @@ void main_start()
     return;
   }
 
-  vmix_showTallyScreen();
+  vmix_showTallyScreen(settings.getVmixTally());
 }
 
 bool main_reconnectWifi()
 {
   wifi_isConnected = false;
 
-  if (!wifi_connect())
+  if (!wifi_connect(settings.getWifiSsid(), settings.getWifiPassphrase()))
   {
-    Serial.printf("Unable to connect to %s\n!", settings.wifi_ssid);
-    M5.Lcd.printf("Unable to connect to %s\n!", settings.wifi_ssid);
+    Serial.printf("Unable to connect to %s\n!", settings.getWifiSsid());
+    M5.Lcd.printf("Unable to connect to %s\n!", settings.getWifiSsid());
     return false;
   }
 
@@ -86,7 +105,7 @@ bool main_reconnectVmix()
   conn_NextVmixResponseCheck = 0;
   conn_NextKeepAliveCheck = 0;
   currentTallyState = TALLY_NONE;
-  vmix_renderTallyScreen();
+  vmix_renderTallyScreen(settings.getVmixTally());
 
   if (!wifi_isConnected) {
     if (!main_reconnectWifi()) {
@@ -94,7 +113,7 @@ bool main_reconnectVmix()
     }
   }
 
-  if (!vmix_connect())
+  if (!vmix_connect(settings.getVmixAddress(), settings.getVmixPort()))
   {
     Serial.println("Unable to connect to vMix!");
     M5.Lcd.println("Unable to connect to vMix!");
@@ -122,7 +141,7 @@ void loop()
     }
     else if (btnSide.isClick())
     {
-      vmix_showTallyNumberScreen();
+      vmix_showTallyNumberScreen(settings.getVmixTally());
     }
   }
   else if (currentScreen == SCREEN_TALLY_NR)
@@ -133,26 +152,26 @@ void loop()
     }
     else if (btnSide.isClick())
     {
-      vmix_showTallyScreen();
+      vmix_showTallyScreen(settings.getVmixTally());
     }
   }
   else if (currentScreen == SCREEN_SETTINGS)
   {
     if (btnM5.isClick())
     {
-      vmix_showTallyScreen();
+      vmix_showTallyScreen(settings.getVmixTally());
     }
     else if (btnSide.isDoubleClick())
     {
-      settings.tallyNumber = (settings.tallyNumber % TALLY_NR_MAX) + 1; // increment the tally number
-      Serial.printf("Updated Tally to %d\n", settings.tallyNumber);
+      settings.setVmixTally((settings.getVmixTally() % TALLY_NR_MAX) + 1); // increment the tally number
+      Serial.printf("Updated Tally to %d\n", settings.getVmixTally());
       settings_save();
       settings_renderscreen();
       vmix_refreshTally();
     }
     else if (btnSide.isLongClick())
     {
-      settings.tallyNumber = 1;
+      settings.setVmixTally(1);
       settings_save();
       settings_renderscreen();
       vmix_refreshTally();
@@ -183,7 +202,7 @@ void loop()
       if (vmix_client.available())
       {
         String data = vmix_client.readStringUntil('\r\n');
-        vmix_handleData(data);
+        vmix_handleData(data, settings.getVmixTally());
       }
     }
 
@@ -220,7 +239,7 @@ void main_showCurrentScreen()
 {
   if (currentScreen == SCREEN_TALLY)
   {
-    vmix_showTallyScreen();
+    vmix_showTallyScreen(settings.getVmixTally());
   }
   else if (currentScreen == SCREEN_SETTINGS)
   {

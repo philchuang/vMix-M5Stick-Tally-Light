@@ -1,5 +1,23 @@
+// intellisense support only, comment out before building
+// #define ESP32
+// #include <HardwareSerial.h>
+// #include <M5StickC.h>
+// #include <WiFi.h>
+// #include "vmix_tally_app.ino"
+// #include "01_config.ino"
+// #include "02_settings.ino"
+// #include "03_app.ino"
+// #include "99_utils.ino"
+// intellisense support only, comment out before building
+
+#define VMIX_API_SUBSCRIBE_TALLY "SUBSCRIBE TALLY"
+#define VMIX_API_SUBSCRIBE_TALLY_RESPONSE_PREFIX "SUBSCRIBE OK TALLY Subscribed"
+#define VMIX_API_GET_TALLY "TALLY"
+#define VMIX_API_GET_TALLY_RESPONSE_PREFIX "TALLY OK "
+#define VMIX_API_GET_VERSION_RESPONSE_PREFIX "VERSION OK "
+
 // Connect to vMix instance
-bool vmix_connect()
+bool vmix_connect(const char *addr, unsigned short port)
 {
   cls();
   M5.Lcd.setTextSize(1);
@@ -10,9 +28,6 @@ bool vmix_connect()
   {
     vmix_client.stop();
   }
-
-  const char *addr = settings.vmix_addr;
-  unsigned short port = settings.vmix_port;
 
   byte retryAttempt = 0;
   byte maxRetry = VMIX_CONN_RETRIES;
@@ -42,7 +57,7 @@ bool vmix_connect()
     Serial.println("Connection opened.");
 
     Serial.println("Subscribing to tally events...");
-    vmix_client.println("SUBSCRIBE TALLY");
+    vmix_client.println(VMIX_API_SUBSCRIBE_TALLY);
 
     return true;
   } while (true);
@@ -54,36 +69,36 @@ void vmix_refreshTally()
 {
   if (vmix_client.connected())
   {
-    vmix_client.println("TALLY");
+    vmix_client.println(VMIX_API_GET_TALLY);
   }
 }
 
 // Handle incoming data
-void vmix_handleData(String &data)
+void vmix_handleData(String &data, unsigned short tally)
 {
-  if (data.indexOf("TALLY OK ") == 0)
+  if (data.indexOf(VMIX_API_GET_TALLY_RESPONSE_PREFIX) == 0)
   {
-    char newState = data.charAt(settings.tallyNumber + 8); // response is like "TALLY OK 00000000"
-    Serial.printf("tally #%u state: %c\n", settings.tallyNumber, newState);
+    char newState = data.charAt(tally + 8); // response is like "TALLY OK 00000000"
+    Serial.printf("tally #%u state: %c\n", tally, newState);
     // Check if tally state has changed
     if (currentTallyState != newState)
     {
       Serial.printf("updating tally state: %c to %c\n", currentTallyState, newState);
       currentTallyState = newState;
-      vmix_renderTallyScreen();
+      vmix_renderTallyScreen(tally);
     }
   }
-  else if (data.indexOf("VERSION OK ") == 0)
+  else if (data.indexOf(VMIX_API_GET_VERSION_RESPONSE_PREFIX) == 0)
   {
     Serial.println("vMix connection established.");
   }
-  else if (data.indexOf("SUBSCRIBE OK TALLY Subscribed") == 0)
+  else if (data.indexOf(VMIX_API_SUBSCRIBE_TALLY_RESPONSE_PREFIX) == 0)
   {
     Serial.println("Tally subscription created.");
   }
 }
 
-void vmix_renderTallyProgram()
+void vmix_renderTallyProgram(unsigned short tally)
 {
   digitalWrite(LED_BUILTIN, LOW);
   if (currentScreen != SCREEN_TALLY && currentScreen != SCREEN_TALLY_NR)
@@ -103,11 +118,11 @@ void vmix_renderTallyProgram()
   else if (currentScreen == SCREEN_TALLY_NR)
   {
     M5.Lcd.setCursor(23, 23);
-    M5.Lcd.println(settings.tallyNumber);
+    M5.Lcd.println(tally);
   }
 }
 
-void vmix_renderTallyPreview()
+void vmix_renderTallyPreview(unsigned short tally)
 {
   digitalWrite(LED_BUILTIN, HIGH);
   if (currentScreen != SCREEN_TALLY && currentScreen != SCREEN_TALLY_NR)
@@ -127,11 +142,11 @@ void vmix_renderTallyPreview()
   else if (currentScreen == SCREEN_TALLY_NR)
   {
     M5.Lcd.setCursor(23, 23);
-    M5.Lcd.println(settings.tallyNumber);
+    M5.Lcd.println(tally);
   }
 }
 
-void vmix_renderTallySafe()
+void vmix_renderTallySafe(unsigned short tally)
 {
   digitalWrite(LED_BUILTIN, HIGH);
   if (currentScreen != SCREEN_TALLY && currentScreen != SCREEN_TALLY_NR)
@@ -151,36 +166,36 @@ void vmix_renderTallySafe()
   else if (currentScreen == SCREEN_TALLY_NR)
   {
     M5.Lcd.setCursor(23, 23);
-    M5.Lcd.println(settings.tallyNumber);
+    M5.Lcd.println(tally);
   }
 }
 
-void vmix_showTallyScreen()
+void vmix_showTallyScreen(unsigned short tally)
 {
   currentScreen = SCREEN_TALLY;
-  vmix_renderTallyScreen();
+  vmix_renderTallyScreen(tally);
 }
 
-void vmix_showTallyNumberScreen()
+void vmix_showTallyNumberScreen(unsigned short tally)
 {
   currentScreen = SCREEN_TALLY_NR;
-  vmix_renderTallyScreen();
+  vmix_renderTallyScreen(tally);
 }
 
-void vmix_renderTallyScreen()
+void vmix_renderTallyScreen(unsigned short tally)
 {
   switch (currentTallyState)
   {
   case TALLY_SAFE:
-    vmix_renderTallySafe();
+    vmix_renderTallySafe(tally);
     break;
   case TALLY_LIVE:
-    vmix_renderTallyProgram();
+    vmix_renderTallyProgram(tally);
     break;
   case TALLY_PRE:
-    vmix_renderTallyPreview();
+    vmix_renderTallyPreview(tally);
     break;
   default:
-    vmix_renderTallySafe();
+    vmix_renderTallySafe(tally);
   }
 }

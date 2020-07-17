@@ -1,63 +1,37 @@
-// Constants
-const byte WifiSsidMaxLength = 64;
-const byte WifiPassMaxLength = 64;
-const byte VmixAddrMaxLength = 64;
-const byte TallyNumberMaxValue = 16;
+// intellisense support only, comment out before building
+// #define ESP32
+// #define EEPROM_SIZE 512
+// #define SCREEN_SETTINGS 1
+// #include <HardwareSerial.h>
+// #include <M5StickC.h>
+// #include <WiFi.h>
+// #include "libs\AppSettings.h"
+// #include "01_config.ino"
+// #include "99_utils.ino"
+// byte currentScreen;
+// unsigned int conn_Reconnections = 0;
+// intellisense support only, comment out before building
 
-// Settings object
-struct Settings
-{
-  char wifi_ssid[WifiSsidMaxLength];
-  char wifi_pass[WifiPassMaxLength];
-  char vmix_addr[VmixAddrMaxLength];
-  unsigned short vmix_port;
-  unsigned short tallyNumber;
-};
-
-// Default settings object
-Settings defaultSettings = {
-  WIFI_SSID,
-  WIFI_PASS,
-  VMIX_IP,
-  VMIX_PORT,
-  TALLY_NR
-};
-
-Settings settings = defaultSettings; // GLOBAL
+AppSettings settings = AppSettings(EEPROM_SIZE);
 
 // Load settings from EEPROM
 void settings_load()
 {
   Serial.println("Loading settings...");
 
-  unsigned long ptr = 0;
-
-  for (int i = 0; i < WifiSsidMaxLength; i++)
-  {
-    settings.wifi_ssid[i] = EEPROM.read(ptr++);
-  }
-
-  for (int i = 0; i < WifiPassMaxLength; i++)
-  {
-    settings.wifi_pass[i] = EEPROM.read(ptr++);
-  }
-
-  for (int i = 0; i < VmixAddrMaxLength; i++)
-  {
-    settings.vmix_addr[i] = EEPROM.read(ptr++);
-  }
-
-  settings.vmix_port = (EEPROM.read(ptr++) << 8) + EEPROM.read(ptr++);
-
-  settings.tallyNumber = (EEPROM.read(ptr++) << 8) + EEPROM.read(ptr++);
-
-  if (strlen(settings.wifi_ssid) == 0 || strlen(settings.wifi_pass) == 0
-      || strlen(settings.vmix_addr) == 0 || settings.vmix_port == 0u 
-      || settings.tallyNumber == 0u)
+  if (!settings.load())
   {
     Serial.println("Invalid settings found, using default settings.");
-    settings = defaultSettings;
-    settings_save();
+    Serial.println("Loaded settings:");
+    settings_print();
+    settings.setWifiSsid(WIFI_SSID);
+    settings.setWifiPassphrase(WIFI_PASS);
+    settings.setVmixAddress(VMIX_ADDR);
+    settings.setVmixPort(VMIX_PORT);
+    settings.setVmixTally(TALLY_NR);
+    settings.save();
+    Serial.println("Default settings:");
+    settings_print();
   }
   else
   {
@@ -69,13 +43,9 @@ void settings_load()
 void settings_clear()
 {
   Serial.println("Clearing EEPROM...");
-  unsigned long ptr = 0;
-  for (int i = 0; i < EEPROM_SIZE; i++)
-  {
-    EEPROM.write(ptr++, 0);
-  }
+  
+  settings.clear();
 
-  EEPROM.commit();
   Serial.println("EEPROM cleared.");
 }
 
@@ -84,49 +54,18 @@ void settings_save()
 {
   Serial.println("Saving settings...");
 
-  settings_clear();
-
-  unsigned long ptr = 0;
-
-  for (int i = 0; i < WifiSsidMaxLength; i++)
-  {
-    EEPROM.write(ptr++, settings.wifi_ssid[i]);
-  }
-
-  for (int i = 0; i < WifiPassMaxLength; i++)
-  {
-    EEPROM.write(ptr++, settings.wifi_pass[i]);
-  }
-
-  for (int i = 0; i < VmixAddrMaxLength; i++)
-  {
-    EEPROM.write(ptr++, settings.vmix_addr[i]);
-  }
-
-  EEPROM.write(ptr++, (byte) (settings.vmix_port >> 8));
-  EEPROM.write(ptr++, (byte) (settings.vmix_port & 0xFF));
-
-  EEPROM.write(ptr++, (byte) (settings.tallyNumber >> 8));
-  EEPROM.write(ptr++, (byte) (settings.tallyNumber & 0xFF));
-
-  EEPROM.commit();
+  settings.save();
 
   Serial.println("Settings saved.");
-  settings_print();
 }
 
 // Print settings
 void settings_print()
 {
-  Serial.println("SETTINGS: ");
-  Serial.printf("SSID: %s\n", settings.wifi_ssid);
-  M5.Lcd.printf("SSID: %s\n", settings.wifi_ssid);
-  Serial.printf("Pass: %s\n", settings.wifi_pass);
-  M5.Lcd.printf("Pass: %s\n", settings.wifi_pass);
-  Serial.printf("vMix: %s:%u\n", settings.vmix_addr, settings.vmix_port);
-  M5.Lcd.printf("vMixr: %s:%u\n", settings.vmix_addr, settings.vmix_port);
-  Serial.printf("Tally: %d\n", settings.tallyNumber);
-  M5.Lcd.printf("Tally: %d\n", settings.tallyNumber);
+  Serial.printf("SSID: %s\n", settings.getWifiSsid());
+  Serial.printf("Pass: %s\n", settings.getWifiPassphrase());
+  Serial.printf("vMix: %s\n", settings.getVmixAddressWithPort());
+  Serial.printf("Tally: %d\n", settings.getVmixTally());
 }
 
 void settings_showscreen() {
@@ -138,11 +77,11 @@ void settings_renderscreen() {
   cls();
   M5.Lcd.setTextSize(1);
   M5.Lcd.setTextColor(WHITE, BLACK);
-  M5.Lcd.printf("SSID: %s\n", settings.wifi_ssid);
+  M5.Lcd.printf("SSID: %s\n", settings.getWifiSsid());
   M5.Lcd.print("IP: ");
   M5.Lcd.println(WiFi.localIP());
-  M5.Lcd.printf("vMix: %s:%u\n", settings.vmix_addr, settings.vmix_port);
-  M5.Lcd.printf("TALLY: %d\n", settings.tallyNumber);
+  M5.Lcd.printf("vMix: %s\n", settings.getVmixAddressWithPort());
+  M5.Lcd.printf("TALLY: %d\n", settings.getVmixTally());
   M5.Lcd.printf("Reconnections: %u\n", conn_Reconnections);
   M5.Lcd.println();
   M5.Lcd.println("Dbl-click side btn to increment Tally.");

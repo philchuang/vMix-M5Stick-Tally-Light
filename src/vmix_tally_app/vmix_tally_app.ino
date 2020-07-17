@@ -1,3 +1,5 @@
+#define ESP32
+
 #include <stdio.h>
 #include <string.h>
 #include <EEPROM.h>
@@ -6,12 +8,13 @@
 
 #include <AXP192.h>
 #include <IMU.h>
-#include <M5Display.h>
-#include <M5StickC.h>
+#include "M5StickC.h"
 #include <RTC.h>
 
 #include <MultiButton.h>
-#include <PinButton.h>
+#include "PinButton.h"
+
+#include "AppSettings.h"
 
 #define LED_BUILTIN 10
 #define EEPROM_SIZE 512
