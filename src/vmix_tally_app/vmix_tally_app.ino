@@ -1,3 +1,11 @@
+/* TODOs
+  - OOP-ify
+  - centered text
+  - automatic orientation flipping
+  - battery indicator
+  - if in preview, button press to quickplay input
+*/
+
 #define ESP32
 
 #include <stdio.h>
@@ -8,11 +16,10 @@
 
 #include <AXP192.h>
 #include <IMU.h>
-#include "M5StickC.h"
+#include <M5StickC.h>
 #include <RTC.h>
 
-#include <MultiButton.h>
-#include "PinButton.h"
+#include <PinButton.h>
 
 #include "AppSettings.h"
 
@@ -38,10 +45,3 @@ byte currentScreen = SCREEN_START;
 bool wifi_isConnected = false;
 bool vmix_isConnected = false;
 unsigned int conn_Reconnections = 0;
-
-/* TODOs
-  - OOP-ify
-  - centered text
-  - battery indicator
-  - if in preview, button press to quickplay input
-*/
