@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <EEPROM.h>
+#include <M5StickC.h>
 
 #define WifiSsidMaxLength 64
 #define WifiPassMaxLength 64
 #define VmixAddrMaxLength 64
-#define TallyNumberMaxValue 64
 
 struct AppSettings::Impl
 {
@@ -20,9 +20,9 @@ struct AppSettings::Impl
     }
 
     unsigned short _EepromSize;
-    char *_WifiSsid;
-    char *_WifiPassphrase;
-    char *_VmixAddress;
+    char *_WifiSsid = new char[WifiSsidMaxLength];
+    char *_WifiPassphrase = new char[WifiPassMaxLength];
+    char *_VmixAddress = new char[VmixAddrMaxLength];
     unsigned short _VmixPort;
     unsigned short _VmixTally;
 };
@@ -36,7 +36,7 @@ AppSettings::~AppSettings() = default;
 
 char *AppSettings::getWifiSsid()
 {
-    return _pimpl->_WifiPassphrase;
+    return _pimpl->_WifiSsid;
 }
 
 void AppSettings::setWifiSsid(char *ssid)
@@ -86,7 +86,9 @@ void AppSettings::setVmixTally(unsigned short tally)
 
 char *AppSettings::getVmixAddressWithPort()
 {
-    char full[VmixAddrMaxLength + 1 + 5];
+    Serial.println(_pimpl->_VmixAddress);
+    Serial.println(_pimpl->_VmixPort);
+    char *full = new char[VmixAddrMaxLength + 1 + 5];
     sprintf(full, "%s:%u", _pimpl->_VmixAddress, _pimpl->_VmixPort);
     return full;
 }
