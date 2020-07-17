@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}\\**",
                 "${env:LOCALAPPDATA}\\Arduino15\\packages\\esp32\\tools\\**",
-                "${env:LOCALAPPDATA}\\Arduino15\\packages\\esp32\\hardware\\esp32\\1.0.4\\**"
+                "${env:LOCALAPPDATA}\\Arduino15\\packages\\esp32\\hardware\\esp32\\1.0.4\\**",
+                "${env:USERPROFILE}\\Documents\\Arduino\\libraries\\**"
             ],
             "forcedInclude": [],
             "intelliSenseMode": "msvc-x64"
