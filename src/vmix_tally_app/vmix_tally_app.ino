@@ -1,8 +1,9 @@
 /* TODOs
   - OOP-ify
-  - centered text
   - switch to alternate settings
+  - centered text
   - battery indicator
+  - AP mode w/ config page
   - if in preview, button press to quickplay input?
 */
 

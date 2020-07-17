@@ -29,8 +29,8 @@
 // unsigned int conn_Reconnections = 0;
 // intellisense support only, comment out before building
 
-PinButton btnM5(37);
-PinButton btnSide(39);
+PinButton btnM5 = PinButton(37);
+PinButton btnSide = PinButton(39);
 
 // char wifi_apDeviceName[32];  // global variable
 // bool wifi_apEnabled = false; // global variable
@@ -240,20 +240,61 @@ bool main_handleButtons()
   btnM5.update();
   btnSide.update();
 
+  // if (btnM5.isClick())
+  // {
+  //   Serial.printf("%u Click\n", 1);
+  // }
+  // if (btnM5.isDoubleClick())
+  // {
+  //   Serial.printf("%u DoubleClick\n", 1);
+  // }
+  // if (btnM5.isLongClick())
+  // {
+  //   Serial.printf("%u LongClick\n", 1);
+  // }
+  // if (btnM5.isReleased())
+  // {
+  //   Serial.printf("%u Released\n", 1);
+  // }
+  // if (btnM5.isSingleClick())
+  // {
+  //   Serial.printf("%u SingleClick\n", 1);
+  // }
+  // if (btnSide.isClick())
+  // {
+  //   Serial.printf("%u Click\n", 2);
+  // }
+  // if (btnSide.isDoubleClick())
+  // {
+  //   Serial.printf("%u DoubleClick\n", 2);
+  // }
+  // if (btnSide.isLongClick())
+  // {
+  //   Serial.printf("%u LongClick\n", 2);
+  // }
+  // if (btnSide.isReleased())
+  // {
+  //   Serial.printf("%u Released\n", 2);
+  // }
+  // if (btnSide.isSingleClick())
+  // {
+  //   Serial.printf("%u SingleClick\n", 2);
+  // }
+
   if (currentScreen == SCREEN_TALLY)
   {
-    if (btnM5.isClick())
+    if (btnM5.isSingleClick())
     {
       vmix_showTallyNumberScreen(settings.getVmixTally());
     }
-    else if (btnSide.isClick())
+    else if (btnSide.isSingleClick())
     {
       // TODO think of another feature
     }
   }
   else if (currentScreen == SCREEN_TALLY_NR)
   {
-    if (btnM5.isClick())
+    if (btnM5.isSingleClick())
     {
       settings_showscreen();
     }
@@ -270,7 +311,7 @@ bool main_handleButtons()
   }
   else if (currentScreen == SCREEN_SETTINGS)
   {
-    if (btnM5.isClick())
+    if (btnM5.isSingleClick())
     {
       vmix_showTallyScreen(settings.getVmixTally());
     }
