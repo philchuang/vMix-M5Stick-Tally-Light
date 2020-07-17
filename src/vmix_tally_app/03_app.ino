@@ -285,6 +285,10 @@ bool main_handleButtons()
     {
       // TODO think of another feature
     }
+    else if (btnSide.isLongClick())
+    {
+      // TODO think of another feature
+    }
   }
   else if (currentScreen == SCREEN_TALLY_NR)
   {

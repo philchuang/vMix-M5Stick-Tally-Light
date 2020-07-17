@@ -1,7 +1,6 @@
 /* TODOs
   - battery indicator
   - update readme
-  - calculated text centering?
   - OOP-ify
     - vmix
     - wifi
@@ -44,6 +43,8 @@
 #define VMIX_KEEPALIVE_MS 5000
 #define VMIX_RESPONSE_MS 100
 #define APP_ORIENTATION_MS 500
+
+#define FONT 1
 
 // GLOBAL STATE
 AppSettings settings;

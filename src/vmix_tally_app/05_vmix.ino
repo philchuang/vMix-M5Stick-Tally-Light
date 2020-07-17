@@ -9,6 +9,7 @@
 // #define TALLY_SAFE '0'
 // #define TALLY_LIVE '1'
 // #define TALLY_PRE '2'
+// #define FONT 1
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
 // #include <WiFi.h>
@@ -125,26 +126,29 @@ void vmix_renderTallyText(const char *text)
 {
   main_updateOrientation(0);
   M5.Lcd.setTextSize(5);
-  M5.Lcd.setCursor(25, 23);
-  M5.Lcd.println(text);
+  M5.Lcd.setTextDatum(MC_DATUM);
+  M5.Lcd.drawString(text, 80, 40, FONT);
 }
 
 void vmix_renderTallyNumber(unsigned char tally)
 {
   main_updateOrientation(1);
   M5.Lcd.setTextSize(7);
+  M5.Lcd.setTextDatum(MC_DATUM);
+  char *text = new char[4];
   if (tally < 10)
   {
-    M5.Lcd.setCursor(24, 54);
-    M5.Lcd.println(tally);
+    sprintf(text, "%d", tally);
+    M5.Lcd.drawString(text, 44, 80, FONT);
   }
   else if (tally < 100)
   {
-    M5.Lcd.setCursor(24, 24);
-    M5.Lcd.println(tally / 10);
-    M5.Lcd.setCursor(24, 78);
-    M5.Lcd.println(tally % 10);
+    sprintf(text, "%d", tally / 10);
+    M5.Lcd.drawString(text, 44, 50, FONT);
+    sprintf(text, "%d", tally % 10);
+    M5.Lcd.drawString(text, 44, 110, FONT);
   }
+  delete[] text;
 }
 
 void vmix_renderTallyProgram(unsigned short tally)
