@@ -1,8 +1,12 @@
 /* TODOs
-  - OOP-ify
-  - uptime counter
-  - centered text
   - battery indicator
+  - update readme
+  - calculated text centering?
+  - OOP-ify
+    - vmix
+    - wifi
+    - app
+    - screens
   - AP mode w/ config page
   - if in preview, button press to quickplay input?
 */

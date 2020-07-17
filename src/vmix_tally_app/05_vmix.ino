@@ -121,6 +121,32 @@ void vmix_setTallyState(unsigned short tally, char newState)
   vmix_renderTallyScreen(tally);
 }
 
+void vmix_renderTallyText(const char *text)
+{
+  main_updateOrientation(0);
+  M5.Lcd.setTextSize(5);
+  M5.Lcd.setCursor(25, 23);
+  M5.Lcd.println(text);
+}
+
+void vmix_renderTallyNumber(unsigned char tally)
+{
+  main_updateOrientation(1);
+  M5.Lcd.setTextSize(7);
+  if (tally < 10)
+  {
+    M5.Lcd.setCursor(24, 54);
+    M5.Lcd.println(tally);
+  }
+  else if (tally < 100)
+  {
+    M5.Lcd.setCursor(24, 24);
+    M5.Lcd.println(tally / 10);
+    M5.Lcd.setCursor(24, 78);
+    M5.Lcd.println(tally % 10);
+  }
+}
+
 void vmix_renderTallyProgram(unsigned short tally)
 {
   digitalWrite(LED_BUILTIN, LOW);
@@ -129,19 +155,15 @@ void vmix_renderTallyProgram(unsigned short tally)
     return;
   }
 
-  cls();
-  M5.Lcd.setTextSize(5);
   M5.Lcd.fillScreen(RED);
   M5.Lcd.setTextColor(WHITE, RED);
   if (currentScreen == SCREEN_TALLY)
   {
-    M5.Lcd.setCursor(25, 23);
-    M5.Lcd.println("LIVE");
+    vmix_renderTallyText("LIVE");
   }
   else if (currentScreen == SCREEN_TALLY_NR)
   {
-    M5.Lcd.setCursor(23, 23);
-    M5.Lcd.println(tally);
+    vmix_renderTallyNumber(tally);
   }
 }
 
@@ -153,19 +175,15 @@ void vmix_renderTallyPreview(unsigned short tally)
     return;
   }
 
-  cls();
-  M5.Lcd.setTextSize(5);
   M5.Lcd.fillScreen(GREEN);
   M5.Lcd.setTextColor(BLACK, GREEN);
   if (currentScreen == SCREEN_TALLY)
   {
-    M5.Lcd.setCursor(40, 23);
-    M5.Lcd.println("PRE");
+    vmix_renderTallyText("PRE");
   }
   else if (currentScreen == SCREEN_TALLY_NR)
   {
-    M5.Lcd.setCursor(23, 23);
-    M5.Lcd.println(tally);
+    vmix_renderTallyNumber(tally);
   }
 }
 
@@ -177,19 +195,15 @@ void vmix_renderTallySafe(unsigned short tally)
     return;
   }
 
-  cls();
-  M5.Lcd.setTextSize(5);
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextColor(WHITE, BLACK);
   if (currentScreen == SCREEN_TALLY)
   {
-    M5.Lcd.setCursor(23, 23);
-    M5.Lcd.println("SAFE");
+    vmix_renderTallyText("SAFE");
   }
   else if (currentScreen == SCREEN_TALLY_NR)
   {
-    M5.Lcd.setCursor(23, 23);
-    M5.Lcd.println(tally);
+    vmix_renderTallyNumber(tally);
   }
 }
 
@@ -201,19 +215,15 @@ void vmix_renderTallyNone(unsigned short tally)
     return;
   }
 
-  cls();
-  M5.Lcd.setTextSize(5);
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextColor(YELLOW, BLACK);
   if (currentScreen == SCREEN_TALLY)
   {
-    M5.Lcd.setCursor(23, 23);
-    M5.Lcd.println("?");
+    vmix_renderTallyText("????");
   }
   else if (currentScreen == SCREEN_TALLY_NR)
   {
-    M5.Lcd.setCursor(23, 23);
-    M5.Lcd.println(tally);
+    vmix_renderTallyNumber(tally);
   }
 }
 

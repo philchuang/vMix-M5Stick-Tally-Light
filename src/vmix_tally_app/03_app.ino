@@ -40,6 +40,7 @@ PinButton btnSide = PinButton(39);
 bool imu_initialized = false;
 bool wifi_isConnected = false;
 bool vmix_isConnected = false;
+byte orientation = 0; // 0 = horizontal, 1 = vertical
 unsigned long conn_NextKeepAliveCheck = 0;
 unsigned long conn_NextVmixResponseCheck = 0;
 unsigned long app_NextOrientationCheck = 0;
@@ -211,25 +212,50 @@ void main_checkOrientation(unsigned long timestamp)
   if (performOrientationCheck)
   {
     app_NextOrientationCheck = timestamp + APP_ORIENTATION_MS;
+    main_updateOrientation(orientation, 0.8f);
+  }
+}
 
-    float accX = 0;
-    float accY = 0;
-    float accZ = 0;
+void main_updateOrientation(byte newOrientation)
+{
+  main_updateOrientation(newOrientation, 0.0f);
+}
 
-    M5.MPU6886.getAccelData(&accX, &accY, &accZ);
+void main_updateOrientation(byte newOrientation, float threshold)
+{
+  orientation = newOrientation;
 
-    if (accX > 0.8f)
+  float accX = 0;
+  float accY = 0;
+  float accZ = 0;
+
+  M5.MPU6886.getAccelData(&accX, &accY, &accZ);
+
+  if (orientation == 0)
+  {
+    if (accX > threshold)
     {
-      main_updateOrientation(1);
+      main_updateRotation(1);
     }
-    else if (accX < -0.8f)
+    else if (accX < -threshold)
     {
-      main_updateOrientation(3);
+      main_updateRotation(3);
+    }
+  }
+  else if (orientation == 1)
+  {
+    if (accY > threshold)
+    {
+      main_updateRotation(0);
+    }
+    else if (accY < -threshold)
+    {
+      main_updateRotation(2);
     }
   }
 }
 
-void main_updateOrientation(byte newRotation)
+void main_updateRotation(byte newRotation)
 {
   byte currentRotation = M5.Lcd.getRotation();
 
@@ -337,7 +363,7 @@ void main_pollVmix(unsigned long timestamp)
 
 void main_pollKeepAlive(unsigned long timestamp)
 {
-  if (!wifi_isConnected && !vmix_isConnected)
+  if ((!wifi_isConnected && !vmix_isConnected) || currentScreen == SCREEN_ERROR)
   {
     return;
   }
@@ -391,14 +417,15 @@ void main_renderScreen()
 
 void main_showErrorScreen(const char *msg)
 {
+  currentScreen = SCREEN_ERROR;
+  main_updateOrientation(0);
   Serial.printf("ERR: %s\n", msg);
   cls();
-  M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx+1, MAX_SETTINGS_NR);
+  M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx + 1, MAX_SETTINGS_NR);
   M5.Lcd.println();
   M5.Lcd.println(msg);
   M5.Lcd.println();
   M5.Lcd.println("Hold M5 btn to restart.");
   M5.Lcd.println("Hold side btn to swap settings.");
-  M5.Lcd.println("TODO Hold both to hard reset.");
-  currentScreen = SCREEN_ERROR;
+  //M5.Lcd.println("TODO Hold both to hard reset.");
 }

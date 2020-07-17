@@ -103,6 +103,7 @@ void settings_showscreen()
 
 void settings_renderscreen()
 {
+  main_updateOrientation(0);
   cls();
   M5.Lcd.setTextSize(1);
   M5.Lcd.setTextColor(WHITE, BLACK);
