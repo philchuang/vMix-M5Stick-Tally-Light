@@ -1,6 +1,7 @@
 # vMix M5Stick-C Tally Light
 
 ![](working-example.gif)
+
 **TODO** update gif, add more pictures
 
 ## Getting started
@@ -9,24 +10,30 @@
 
 1. Follow the tutorial on the [M5Stack website](https://docs.m5stack.com/#/en/arduino/arduino_development).
     1. Instead of Arduino IDE you can also use [Visual Studio Code](https://code.visualstudio.com/) with the [Arduino extension](https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino).
-1. Copy the libraries that are used by this project (found in the `libs` folder) to your system.
-The default path is: `%userprofile%\Documents\Arduino\libraries`, but could also be `%onedrive%\Documents\Arduino\libraries`.
+1. Copy the libraries that are used by this project (found in the `~\libs` folder) to `%userprofile%\Documents\Arduino\libraries`.
 
 ### Step 2
 Copy `~\src\vmix_tally_app\01_config.ino.template` as `01_config.ino` and change the values to match your setup. The second set of settings are optional, uncomment and update them if needed.
+```c
+#define SETTINGS0_WIFI_SSID "your_wifi1"
+#define SETTINGS0_WIFI_PASS "wifi_pass1"
+#define SETTINGS0_VMIX_ADDR "192.168.1.100" // or hostname
+#define SETTINGS0_VMIX_PORT 8099 // default TCP API port
+#define SETTINGS0_TALLY_NR 1 // initial tally number
+```
 
 ### Step 3
-Upload to your device.
+Using the IDE, compile and upload to your M5StickC.
 
 ## USAGE
 
 1. Turn on device
 1. Wait for wifi and vmix connection
 1. The first screen is the tally status
-    1. SAFE: input not in preview or live
-    1. PRE: input in preview
-    1. LIVE: input is live
-    1. ????: tally status unavailable
+    1. `SAFE`: input not in preview or live
+    1. `PRE`: input in preview
+    1. `LIVE`: input is live
+    1. `????`: tally status unavailable
     1. M5 button single-click: display the tally number screen
 1. The second screen is the tally number
     1. M5 button single-click: display the connection settings screen
@@ -44,4 +51,4 @@ Upload to your device.
 * [ ]  Webserver for easy configuration
 
 ## Thanks
-This project is a fork of [Guido Visser's vMix-M5Stick-Tally-Light](https://github.com/guido-visser/vMix-M5Stick-Tally-Light), who got the ball rolling.
+This project is a fork of [Guido Visser's vMix-M5Stick-Tally-Light](https://github.com/guido-visser/vMix-M5Stick-Tally-Light), who inspired me and got the ball rolling.
