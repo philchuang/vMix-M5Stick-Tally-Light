@@ -33,6 +33,7 @@ bool vmix_connect(const char *addr, unsigned short port)
 {
   cls();
   M5.Lcd.setTextSize(1);
+  M5.Lcd.setTextColor(WHITE, BLACK);
   Serial.println("Connecting to vMix...");
   M5.Lcd.println("Connecting to vMix...");
 
@@ -79,7 +80,7 @@ bool vmix_connect(const char *addr, unsigned short port)
 
 bool vmix_isAlive()
 {
-  return !vmix_client.available() && !vmix_client.connected();
+  return vmix_client.connected() || vmix_client.available();
 }
 
 void vmix_refreshTally()
@@ -103,13 +104,7 @@ void vmix_checkForResponses(unsigned short tally)
   {
     char newState = data.charAt(tally + 8); // response is like "TALLY OK 00000000"
     Serial.printf("tally #%u state: %c\n", tally, newState);
-    // Check if tally state has changed
-    if (currentTallyState != newState)
-    {
-      Serial.printf("updating tally state: %c to %c\n", currentTallyState, newState);
-      currentTallyState = newState;
-      vmix_renderTallyScreen(tally);
-    }
+    vmix_setTallyState(tally, newState);
   }
   else if (data.indexOf(VMIX_API_GET_VERSION_RESPONSE_PREFIX) == 0)
   {
@@ -119,6 +114,18 @@ void vmix_checkForResponses(unsigned short tally)
   {
     Serial.println("Tally subscription created.");
   }
+}
+
+void vmix_setTallyState(unsigned short tally, char newState)
+{
+  // Check if tally state has changed
+  if (currentTallyState == newState)
+  {
+    return;
+  }
+  Serial.printf("updating tally state: %c to %c\n", currentTallyState, newState);
+  currentTallyState = newState;
+  vmix_renderTallyScreen(tally);
 }
 
 void vmix_renderTallyProgram(unsigned short tally)
@@ -193,6 +200,30 @@ void vmix_renderTallySafe(unsigned short tally)
   }
 }
 
+void vmix_renderTallyNone(unsigned short tally)
+{
+  digitalWrite(LED_BUILTIN, HIGH);
+  if (currentScreen != SCREEN_TALLY && currentScreen != SCREEN_TALLY_NR)
+  {
+    return;
+  }
+
+  cls();
+  M5.Lcd.setTextSize(5);
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setTextColor(YELLOW, BLACK);
+  if (currentScreen == SCREEN_TALLY)
+  {
+    M5.Lcd.setCursor(23, 23);
+    M5.Lcd.println("?");
+  }
+  else if (currentScreen == SCREEN_TALLY_NR)
+  {
+    M5.Lcd.setCursor(23, 23);
+    M5.Lcd.println(tally);
+  }
+}
+
 void vmix_showTallyScreen(unsigned short tally)
 {
   currentScreen = SCREEN_TALLY;
@@ -209,6 +240,9 @@ void vmix_renderTallyScreen(unsigned short tally)
 {
   switch (currentTallyState)
   {
+  case TALLY_NONE:
+    vmix_renderTallyNone(tally);
+    break;
   case TALLY_SAFE:
     vmix_renderTallySafe(tally);
     break;
@@ -219,6 +253,6 @@ void vmix_renderTallyScreen(unsigned short tally)
     vmix_renderTallyPreview(tally);
     break;
   default:
-    vmix_renderTallySafe(tally);
+    vmix_renderTallyNone(tally);
   }
 }

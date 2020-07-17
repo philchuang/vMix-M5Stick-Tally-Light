@@ -1,9 +1,16 @@
 // intellisense support only, comment out before building
 // #define ESP32
+// #define LED_BUILTIN 10
+// #define EEPROM_SIZE 512
 // #define TALLY_NONE ' '
+// #define SCREEN_START 0
+// #define SCREEN_SETTINGS 1
 // #define SCREEN_TALLY 2
 // #define SCREEN_TALLY_NR 3
 // #define SCREEN_ERROR 255
+// #define VMIX_KEEPALIVE_MS 5000
+// #define VMIX_RESPONSE_MS 100
+// #define APP_ORIENTATION_MS 500
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
 // #include <SPIFFS.h>
@@ -17,7 +24,9 @@
 // #include "05_vmix.ino"
 // #include "99_utils.ino"
 // AppSettings settings = AppSettings(EEPROM_SIZE);
+// byte currentScreen = SCREEN_START;
 // char currentTallyState = TALLY_NONE;
+// unsigned int conn_Reconnections = 0;
 // intellisense support only, comment out before building
 
 PinButton btnM5(37);
@@ -27,10 +36,12 @@ PinButton btnSide(39);
 // bool wifi_apEnabled = false; // global variable
 // char wifi_apPass[64];        // global variable
 
+bool imu_initialized = false;
 bool wifi_isConnected = false;
 bool vmix_isConnected = false;
 unsigned long conn_NextKeepAliveCheck = 0;
 unsigned long conn_NextVmixResponseCheck = 0;
+unsigned long app_NextOrientationCheck = 0;
 
 void setup()
 {
@@ -42,6 +53,15 @@ void setup()
   digitalWrite(LED_BUILTIN, HIGH);
   EEPROM.begin(EEPROM_SIZE);
   SPIFFS.begin();
+
+  if (M5.MPU6886.Init() != 0)
+  {
+    Serial.println("MPU6886 error");
+  }
+  else
+  {
+    imu_initialized = true;
+  }
 
   main_splash();
   main_start();
@@ -107,8 +127,10 @@ bool main_reconnectVmix()
   currentTallyState = TALLY_NONE;
   vmix_renderTallyScreen(settings.getVmixTally());
 
-  if (!wifi_isConnected) {
-    if (!main_reconnectWifi()) {
+  if (!wifi_isConnected)
+  {
+    if (!main_reconnectWifi())
+    {
       return false;
     }
   }
@@ -130,6 +152,91 @@ void loop()
 
   // server.handleClient();
 
+  main_checkOrientation(timestamp);
+
+  if (!main_handleButtons())
+  {
+    return;
+  }
+
+  main_pollVmix(timestamp);
+}
+
+void main_restart()
+{
+  // server.close();
+
+  Serial.println();
+  Serial.println();
+  Serial.println("------------");
+  Serial.println("RESTART");
+  Serial.println("------------");
+  Serial.println();
+  Serial.println();
+
+  main_start();
+}
+
+void main_incrementTally()
+{
+  main_updateTally((settings.getVmixTally() % TALLY_NR_MAX) + 1);
+}
+
+void main_updateTally(unsigned short tally)
+{
+  settings.setVmixTally(tally);
+  Serial.printf("Updated Tally to %d\n", settings.getVmixTally());
+  settings_save();
+  vmix_setTallyState(tally, TALLY_NONE);
+  vmix_refreshTally();
+}
+
+void main_checkOrientation(unsigned long timestamp)
+{
+  if (!imu_initialized)
+  {
+    return;
+  }
+
+  bool performOrientationCheck = timestamp > app_NextOrientationCheck + APP_ORIENTATION_MS;
+  if (performOrientationCheck)
+  {
+    app_NextOrientationCheck = timestamp + APP_ORIENTATION_MS;
+
+    float accX = 0;
+    float accY = 0;
+    float accZ = 0;
+
+    M5.MPU6886.getAccelData(&accX, &accY, &accZ);
+
+    if (accX > 0.8f)
+    {
+      main_updateOrientation(1);
+    }
+    else if (accX < -0.8f)
+    {
+      main_updateOrientation(3);
+    }
+  }
+}
+
+void main_updateOrientation(byte newRotation)
+{
+  byte currentRotation = M5.Lcd.getRotation();
+
+  if (currentRotation == newRotation)
+  {
+    return;
+  }
+
+  M5.Lcd.setRotation(newRotation);
+  main_renderScreen();
+}
+
+bool main_handleButtons()
+{
+  bool breakLoop = true;
+
   btnM5.update();
   btnSide.update();
 
@@ -137,11 +244,11 @@ void loop()
   {
     if (btnM5.isClick())
     {
-      settings_showscreen();
+      vmix_showTallyNumberScreen(settings.getVmixTally());
     }
     else if (btnSide.isClick())
     {
-      vmix_showTallyNumberScreen(settings.getVmixTally());
+      // TODO think of another feature
     }
   }
   else if (currentScreen == SCREEN_TALLY_NR)
@@ -150,9 +257,15 @@ void loop()
     {
       settings_showscreen();
     }
-    else if (btnSide.isClick())
+    else if (btnSide.isDoubleClick())
     {
-      vmix_showTallyScreen(settings.getVmixTally());
+      main_incrementTally();
+      vmix_showTallyNumberScreen(settings.getVmixTally());
+    }
+    else if (btnSide.isLongClick())
+    {
+      main_updateTally(1);
+      vmix_showTallyNumberScreen(settings.getVmixTally());
     }
   }
   else if (currentScreen == SCREEN_SETTINGS)
@@ -163,18 +276,13 @@ void loop()
     }
     else if (btnSide.isDoubleClick())
     {
-      settings.setVmixTally((settings.getVmixTally() % TALLY_NR_MAX) + 1); // increment the tally number
-      Serial.printf("Updated Tally to %d\n", settings.getVmixTally());
-      settings_save();
+      main_incrementTally();
       settings_renderscreen();
-      vmix_refreshTally();
     }
     else if (btnSide.isLongClick())
     {
-      settings.setVmixTally(1);
-      settings_save();
+      main_updateTally(1);
       settings_renderscreen();
-      vmix_refreshTally();
     }
   }
   else if (currentScreen == SCREEN_ERROR)
@@ -182,17 +290,22 @@ void loop()
     if (btnM5.isLongClick())
     {
       main_restart();
-      return;
+      breakLoop = false;
     }
     else if (btnSide.isLongClick())
     {
       settings_clear();
       settings_load();
       main_restart();
-      return;
+      breakLoop = false;
     }
   }
 
+  return breakLoop;
+}
+
+void main_pollVmix(unsigned long timestamp)
+{
   if (vmix_isConnected)
   {
     bool performVmixResponseCheck = timestamp > conn_NextVmixResponseCheck;
@@ -216,29 +329,22 @@ void loop()
   }
 }
 
-void main_restart()
-{
-  // server.close();
-
-  Serial.println();
-  Serial.println();
-  Serial.println("------------");
-  Serial.println("RESTART");
-  Serial.println("------------");
-  Serial.println();
-  Serial.println();
-
-  main_start();
-}
-
-void main_showCurrentScreen()
+void main_renderScreen()
 {
   if (currentScreen == SCREEN_TALLY)
   {
     vmix_showTallyScreen(settings.getVmixTally());
   }
+  else if (currentScreen == SCREEN_TALLY_NR)
+  {
+    vmix_showTallyNumberScreen(settings.getVmixTally());
+  }
   else if (currentScreen == SCREEN_SETTINGS)
   {
-    settings_showscreen();
+    settings_renderscreen();
+  }
+  else if (currentScreen == SCREEN_ERROR)
+  {
+    // does nothing
   }
 }

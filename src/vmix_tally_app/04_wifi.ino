@@ -13,7 +13,7 @@ bool wifi_connect(const char* ssid, const char* passphrase)
   Serial.printf("SSID: %s\n", ssid);
   Serial.printf("Pass: %s\n", passphrase);
 
-  Serial.print("Connecting to WiFi...");
+  Serial.printf("Connecting to %s with %s...", ssid, passphrase);
   M5.Lcd.print("Connecting to WiFi...");
 
   if (WiFi.status() == WL_CONNECTED) {
