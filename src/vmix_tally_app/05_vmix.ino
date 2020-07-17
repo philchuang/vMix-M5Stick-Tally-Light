@@ -33,6 +33,7 @@ WiFiClient vmix_client;
 bool vmix_connect(const char *addr, unsigned short port)
 {
   cls();
+  main_updateOrientation(0);
   M5.Lcd.setTextSize(1);
   M5.Lcd.setTextColor(WHITE, BLACK);
   Serial.println("Connecting to vMix...");

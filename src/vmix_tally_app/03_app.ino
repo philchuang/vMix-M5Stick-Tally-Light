@@ -80,6 +80,9 @@ void setup()
 
 void main_splash()
 {
+  cls();
+  main_updateOrientation(0);
+  // TODO use drawstring
   M5.Lcd.setCursor(20, 15);
   M5.Lcd.println("vMix M5Stick-C Tally");
   M5.Lcd.setCursor(35, 35);
@@ -120,6 +123,7 @@ bool main_reconnectWifi()
   if (!wifi_connect(settings.getWifiSsid(), settings.getWifiPassphrase()))
   {
     Serial.printf("Unable to connect to %s!\n", settings.getWifiSsid());
+    main_updateOrientation(0);
     M5.Lcd.printf("Unable to connect to %s!\n", settings.getWifiSsid());
     return false;
   }
@@ -147,6 +151,7 @@ bool main_reconnectVmix()
   if (!vmix_connect(settings.getVmixAddress(), settings.getVmixPort()))
   {
     Serial.println("Unable to connect to vMix!");
+    main_updateOrientation(0);
     M5.Lcd.println("Unable to connect to vMix!");
     return false;
   }
@@ -422,9 +427,9 @@ void main_renderScreen()
 void main_showErrorScreen(const char *msg)
 {
   currentScreen = SCREEN_ERROR;
+  cls();
   main_updateOrientation(0);
   Serial.printf("ERR: %s\n", msg);
-  cls();
   M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx + 1, MAX_SETTINGS_NR);
   M5.Lcd.println();
   M5.Lcd.println(msg);
