@@ -292,7 +292,7 @@ bool main_handleButtons()
     }
     else if (btnSide.isLongClick())
     {
-      // TODO TCP: FUNCTION QuickPlay Input={tally}
+      vmix_quickPlayInput(settings.getVmixTally());
     }
   }
   else if (currentScreen == SCREEN_TALLY_NR)

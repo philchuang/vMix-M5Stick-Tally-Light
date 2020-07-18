@@ -21,11 +21,13 @@
 // char currentTallyState = TALLY_NONE;
 // intellisense support only, comment out before building
 
-#define VMIX_API_SUBSCRIBE_TALLY "SUBSCRIBE TALLY"
+#define VMIX_API_SUBSCRIBE_TALLY "SUBSCRIBE TALLY\r\n"
 #define VMIX_API_SUBSCRIBE_TALLY_RESPONSE_PREFIX "SUBSCRIBE OK TALLY Subscribed"
-#define VMIX_API_GET_TALLY "TALLY"
+#define VMIX_API_GET_TALLY "TALLY\r\n"
 #define VMIX_API_GET_TALLY_RESPONSE_PREFIX "TALLY OK "
 #define VMIX_API_GET_VERSION_RESPONSE_PREFIX "VERSION OK "
+#define VMIX_API_FUNCTION_QUICKPLAY_INPUT "FUNCTION QuickPlay Input=%d\r\n"
+#define VMIX_API_FUNCTION_QUICKPLAY_INPUT_RESPONSE "FUNCTION OK COMPLETED"
 
 WiFiClient vmix_client;
 
@@ -65,7 +67,7 @@ bool vmix_connect(const char *addr, unsigned short port)
 
     Serial.println("Connection opened.");
     Serial.println("Subscribing to tally events...");
-    vmix_client.println(VMIX_API_SUBSCRIBE_TALLY);
+    vmix_client.print(VMIX_API_SUBSCRIBE_TALLY);
 
     return true;
   } while (true);
@@ -82,7 +84,15 @@ void vmix_refreshTally()
 {
   if (vmix_client.connected())
   {
-    vmix_client.println(VMIX_API_GET_TALLY);
+    vmix_client.print(VMIX_API_GET_TALLY);
+  }
+}
+
+void vmix_quickPlayInput(unsigned short tally)
+{
+  if (vmix_client.connected())
+  {
+    vmix_client.printf(VMIX_API_FUNCTION_QUICKPLAY_INPUT, tally);
   }
 }
 
@@ -109,6 +119,10 @@ void vmix_checkForResponses(unsigned short tally)
   else if (data.indexOf(VMIX_API_SUBSCRIBE_TALLY_RESPONSE_PREFIX) == 0)
   {
     Serial.println("Tally subscription created.");
+  }
+  else if (data.indexOf(VMIX_API_FUNCTION_QUICKPLAY_INPUT_RESPONSE) == 0)
+  {
+    Serial.println("Function QuickPlay successful.");
   }
 }
 
