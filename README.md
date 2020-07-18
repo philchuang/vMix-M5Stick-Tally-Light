@@ -1,14 +1,36 @@
 # vMix M5Stick-C Tally Light
 
+## Tally in action
+
+(Click images to play video)
+
+### Overview
+
 [![Alt text](https://img.youtube.com/vi/AwrGejqj_YY/0.jpg)](https://youtu.be/AwrGejqj_YY)
 
-**TODO** update gif, add more pictures
+### Tally statuses
+
+[![Alt text](https://img.youtube.com/vi/anjMjVwFqTU/0.jpg)](https://youtu.be/anjMjVwFqTU)
+
+### Changing Tally Input
+
+[![Alt text](https://img.youtube.com/vi/vNC3jXKfyJU/0.jpg)](https://youtu.be/vNC3jXKfyJU)
 
 ## Getting started
 
+### What you need
+
+**M5StickC**
+
+An ESP32 powered unit, programmable with Arduino IDE. Built-in 80x160 color screen, LED, wifi, bluetooth, IR sensor, microphone, accelerometer, battery. It also hasconnectors for additional modules to extend its capabilities.
+
+It's [$10 direct from the manufacturer](https://m5stack.com/collections/m5-core/products/stick-c), but it will take a few weeks to arrive.
+
+Or if you can't wait, you can buy it for [$20 from Amazon](https://www.amazon.com/dp/B07R48W8R8/ref=cm_sw_r_tw_dp_x_oFNeFbQN387ED).
+
 ### Step 1
 
-1. Follow the tutorial on the [M5Stack website](https://docs.m5stack.com/#/en/arduino/arduino_development).
+1. Follow the arduino tutorial on the [M5Stack website](https://docs.m5stack.com/#/en/arduino/arduino_development).
     1. Instead of Arduino IDE you can also use [Visual Studio Code](https://code.visualstudio.com/) with the [Arduino extension](https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino).
 1. Copy the libraries that are used by this project (found in the `~\libs` folder) to `%userprofile%\Documents\Arduino\libraries`.
 
@@ -35,21 +57,20 @@ Using the IDE, compile and upload to your M5StickC.
     1. `LIVE`: input is live
     1. `????`: tally status unavailable
     1. M5 button single-click: display the tally number screen
-1. The second screen is the tally number
+    2. Side button long-click: QuickPlay this input
+2. The second screen is the tally number
     1. M5 button single-click: display the connection settings screen
-    1. Side button double-click: increment the tally number
-    1. Side button long-click: reset tally number to 1
-1. The third screen is the settings
+    2. Side button double-click: increment the tally number
+    3. Side button long-click: reset tally number to 1
+3. The third screen is the settings
     1. M5 button single-click: display the tally status screen
     2. Side button long-click: load next settings and restart
 
 ## TODO
-* [ ]  Refine readme
 * [ ]  Battery indicator
-* [ ]  Ability to trigger quickplay for selected input
 * [ ]  Hard-reset capability from settings or error screen
 * [ ]  Access Point mode when not connected to a WiFi network
 * [ ]  Webserver for easy configuration
 
 ## Thanks
-This project is a fork of [Guido Visser's vMix-M5Stick-Tally-Light](https://github.com/guido-visser/vMix-M5Stick-Tally-Light), who inspired me and got the ball rolling.
+This project is a fork of [Guido Visser's vMix-M5Stick-Tally-Light](https://github.com/guido-visser/vMix-M5Stick-Tally-Light), which inspired me and got the ball rolling.
