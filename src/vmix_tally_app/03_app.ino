@@ -1,4 +1,4 @@
-// intellisense support only, comment out before building
+// // intellisense support only, comment out before building
 // #define ESP32
 // #define LED_BUILTIN 10
 // #define EEPROM_SIZE 512
@@ -31,7 +31,7 @@
 // byte currentScreen = SCREEN_START;
 // char currentTallyState = TALLY_NONE;
 // unsigned int conn_Reconnections = 0;
-// float currentBatteryLevel = 100.0f;
+// double currentBatteryLevel;
 // bool isCharging = false;
 // intellisense support only, comment out before building
 
@@ -53,9 +53,14 @@ unsigned long m5_NextBatteryLevelCheck = 0;
 
 void setup()
 {
+  // power savings
+  setCpuFrequencyMhz(80);
+  btStop();
+
   Serial.begin(115200);
   M5.begin();
-  M5.Axp.begin();
+  // M5.Axp.begin();
+  Wire.begin();
   delay(10);
   M5.Lcd.setRotation(3);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -93,9 +98,9 @@ void main_splash()
   M5.Lcd.setCursor(20, 15);
   M5.Lcd.println("vMix M5Stick-C Tally");
   M5.Lcd.setCursor(35, 35);
-  M5.Lcd.println("by Guido Visser");
+  M5.Lcd.println("by Phil Chuang");
   M5.Lcd.setCursor(40, 55);
-  M5.Lcd.println("& Phil Chuang");
+  M5.Lcd.println("& Guido Visser");
   delay(2000);
 }
 
@@ -222,7 +227,11 @@ void main_checkBatteryLevel(unsigned long timestamp)
   {
     m5_NextBatteryLevelCheck = timestamp + M5_BATTERYLEVEL_MS;
     // TODO fix this, not quite working right
-    currentBatteryLevel = M5.Axp.GetBatPower();
+    // https://forum.m5stack.com/topic/1361/ischarging-and-getbatterylevel/7
+    // currentBatteryLevel = M5.Axp.GetBatPower();
+      unsigned int vbatData = M5.Axp.GetVbatData();
+      double vbat = vbatData * 1.1 / 1000;
+      return 100.0 * ((vbat - 3.0) / (4.07 - 3.0));
   }
 }
 

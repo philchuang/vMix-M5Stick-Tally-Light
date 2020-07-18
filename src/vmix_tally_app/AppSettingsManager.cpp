@@ -5,6 +5,8 @@
 #include <EEPROM.h>
 #include <M5StickC.h>
 
+// TODO convert to using Preferences instead of EEPROM
+
 struct AppSettingsManager::Impl
 {
     Impl(unsigned short eepromSize, unsigned short numSettings)

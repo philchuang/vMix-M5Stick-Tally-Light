@@ -2,6 +2,7 @@
 
 #include <HardwareSerial.h>
 #include <M5StickC.h>
+#include <AXP192.h>
 #include <WiFi.h>
 #include <SPIFFS.h>
 #include <EEPROM.h>
