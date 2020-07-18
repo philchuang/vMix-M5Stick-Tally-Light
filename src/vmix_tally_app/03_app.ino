@@ -4,6 +4,7 @@
 // #define EEPROM_SIZE 512
 // #define CLEAR_SETTINGS_ON_LOAD true
 // #define TALLY_NONE ' '
+// #define TALLY_NR_MAX 30
 // #define SCREEN_START 0
 // #define SCREEN_SETTINGS 1
 // #define SCREEN_TALLY 2
@@ -12,8 +13,10 @@
 // #define VMIX_KEEPALIVE_MS 5000
 // #define VMIX_RESPONSE_MS 100
 // #define APP_ORIENTATION_MS 500
+// #define M5_BATTERYLEVEL_MS 30000
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
+// #include <AXP192.h>
 // #include <SPIFFS.h>
 // #include <EEPROM.h>
 // #include <WiFi.h>
@@ -28,6 +31,8 @@
 // byte currentScreen = SCREEN_START;
 // char currentTallyState = TALLY_NONE;
 // unsigned int conn_Reconnections = 0;
+// float currentBatteryLevel = 100.0f;
+// bool isCharging = false;
 // intellisense support only, comment out before building
 
 PinButton btnM5 = PinButton(37);
@@ -44,11 +49,13 @@ byte orientation = 0; // 0 = horizontal, 1 = vertical
 unsigned long conn_NextKeepAliveCheck = 0;
 unsigned long conn_NextVmixResponseCheck = 0;
 unsigned long app_NextOrientationCheck = 0;
+unsigned long m5_NextBatteryLevelCheck = 0;
 
 void setup()
 {
   Serial.begin(115200);
   M5.begin();
+  M5.Axp.begin();
   delay(10);
   M5.Lcd.setRotation(3);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -166,6 +173,7 @@ void loop()
 
   // server.handleClient();
 
+  main_checkBatteryLevel(timestamp);
   main_checkOrientation(timestamp);
 
   if (main_handleButtons())
@@ -204,6 +212,18 @@ void main_updateTally(unsigned short tally)
   settings_save();
   vmix_setTallyState(tally, TALLY_NONE);
   vmix_refreshTally();
+}
+
+void main_checkBatteryLevel(unsigned long timestamp)
+{
+  isCharging = M5.Axp.GetInputPowerStatus() > 0;
+  bool performBatteryLevelCheck = timestamp > m5_NextBatteryLevelCheck + M5_BATTERYLEVEL_MS;
+  if (performBatteryLevelCheck)
+  {
+    m5_NextBatteryLevelCheck = timestamp + M5_BATTERYLEVEL_MS;
+    // TODO fix this, not quite working right
+    currentBatteryLevel = M5.Axp.GetBatPower();
+  }
 }
 
 void main_checkOrientation(unsigned long timestamp)

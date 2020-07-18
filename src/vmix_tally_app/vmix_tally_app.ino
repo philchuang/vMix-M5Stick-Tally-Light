@@ -31,6 +31,7 @@
 #define VMIX_KEEPALIVE_MS 5000
 #define VMIX_RESPONSE_MS 100
 #define APP_ORIENTATION_MS 500
+#define M5_BATTERYLEVEL_MS 30000
 
 #define FONT 1
 
@@ -40,3 +41,5 @@ AppSettings settings;
 char currentTallyState = TALLY_NONE;
 byte currentScreen = SCREEN_START;
 unsigned int conn_Reconnections = 0;
+float currentBatteryLevel = 100.0f;
+bool isCharging = false;

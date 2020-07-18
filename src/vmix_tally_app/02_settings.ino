@@ -107,9 +107,9 @@ void settings_renderscreen()
   main_updateOrientation(0);
   M5.Lcd.setTextSize(1);
   M5.Lcd.setTextColor(WHITE, BLACK);
-  M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx+1, MAX_SETTINGS_NR);
+  M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx + 1, MAX_SETTINGS_NR);
   M5.Lcd.printf("-SSID: %s\n", settings.getWifiSsid());
-  M5.Lcd.print ("-IP: ");
+  M5.Lcd.printf("-IP: ");
   M5.Lcd.println(WiFi.localIP());
   M5.Lcd.printf("-vMix: %s\n", settings.getVmixAddressWithPort());
   M5.Lcd.printf("-TALLY: %d\n", settings.getVmixTally());
@@ -119,6 +119,14 @@ void settings_renderscreen()
   unsigned long minutes = (timestamp - (hours * 1000 * 60 * 60)) / 1000 / 60;
   unsigned long seconds = (timestamp - (hours * 1000 * 60 * 60) - (minutes * 1000 * 60)) / 1000;
   M5.Lcd.printf("Runtime: %02u:%02u:%02u\n", hours, minutes, seconds);
+  if (isCharging)
+  {
+    M5.Lcd.printf("Battery: CHARGING\n");
+  }
+  else
+  {
+    M5.Lcd.printf("Battery: %2.0.f%%\n", currentBatteryLevel);
+  }
   M5.Lcd.println();
   M5.Lcd.println("Hold side btn to swap settings.");
 }

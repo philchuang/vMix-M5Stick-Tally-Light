@@ -9,6 +9,7 @@
         "vector": "cpp",
         "initializer_list": "cpp",
         "functional": "cpp",
-        "istream": "cpp"
+        "istream": "cpp",
+        "chrono": "cpp"
     }
 }
