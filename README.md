@@ -1,6 +1,6 @@
 # vMix M5Stick-C Tally Light
 
-![](working-example.gif)
+[![Alt text](https://img.youtube.com/vi/AwrGejqj_YY/0.jpg)](https://youtu.be/AwrGejqj_YY)
 
 **TODO** update gif, add more pictures
 
@@ -44,6 +44,7 @@ Using the IDE, compile and upload to your M5StickC.
     2. Side button long-click: load next settings and restart
 
 ## TODO
+* [ ]  Refine readme
 * [ ]  Battery indicator
 * [ ]  Ability to trigger quickplay for selected input
 * [ ]  Hard-reset capability from settings or error screen
