@@ -20,9 +20,7 @@
 
 ### What you need
 
-**M5StickC**
-
-An ESP32 powered unit, programmable with Arduino IDE. Built-in 80x160 color screen, LED, wifi, bluetooth, IR sensor, microphone, accelerometer, battery. It also hasconnectors for additional modules to extend its capabilities.
+The **M5StickC** is an ESP32-powered unit, programmable with Arduino IDE. Built-in 80x160 color screen, LED, wifi, bluetooth, IR sensor, microphone, accelerometer, battery. It also has connectors for additional modules to extend its capabilities.
 
 It's [$10 direct from the manufacturer](https://m5stack.com/collections/m5-core/products/stick-c), but it will take a few weeks to arrive.
 
@@ -35,7 +33,9 @@ Or if you can't wait, you can buy it for [$20 from Amazon](https://www.amazon.co
 1. Copy the libraries that are used by this project (found in the `~\libs` folder) to `%userprofile%\Documents\Arduino\libraries`.
 
 ### Step 2
+
 Copy `~\src\vmix_tally_app\01_config.ino.template` as `01_config.ino` and change the values to match your setup. The second set of settings are optional, uncomment and update them if needed.
+
 ```c
 #define SETTINGS0_WIFI_SSID "your_wifi1"
 #define SETTINGS0_WIFI_PASS "wifi_pass1"
@@ -45,6 +45,7 @@ Copy `~\src\vmix_tally_app\01_config.ino.template` as `01_config.ino` and change
 ```
 
 ### Step 3
+
 Using the IDE, compile and upload to your M5StickC.
 
 ## USAGE
@@ -57,20 +58,24 @@ Using the IDE, compile and upload to your M5StickC.
     1. `LIVE`: input is live
     1. `????`: tally status unavailable
     1. M5 button single-click: display the tally number screen
-    2. Side button long-click: QuickPlay this input
-2. The second screen is the tally number
+    1. Side button long-click: QuickPlay this input
+1. The second screen is the tally number
     1. M5 button single-click: display the connection settings screen
-    2. Side button double-click: increment the tally number
-    3. Side button long-click: reset tally number to 1
-3. The third screen is the settings
+    1. Side button double-click: increment the tally number
+    1. Side button long-click: reset tally number to 1
+1. The third screen is the settings
+    1. SSID, IP, vMix IP/port, Runtime.
     1. M5 button single-click: display the tally status screen
-    2. Side button long-click: load next settings and restart
+    1. Side button long-click: load next settings and restart
 
 ## TODO
+
 * [ ]  Battery indicator
+* [ ]  Continued cleanup and refactor of logic
 * [ ]  Hard-reset capability from settings or error screen
 * [ ]  Access Point mode when not connected to a WiFi network
 * [ ]  Webserver for easy configuration
 
 ## Thanks
+
 This project is a fork of [Guido Visser's vMix-M5Stick-Tally-Light](https://github.com/guido-visser/vMix-M5Stick-Tally-Light), which inspired me and got the ball rolling.
