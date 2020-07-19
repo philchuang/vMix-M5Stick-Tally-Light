@@ -62,16 +62,11 @@ void setup()
   setCpuFrequencyMhz(80);
   btStop();
 
-  Serial.begin(115200);
+  // initialization
   M5.begin();
-  Wire.begin();
-  delay(10);
-  M5.Lcd.setRotation(3);
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
+  Serial.begin(115200);
   EEPROM.begin(EEPROM_SIZE);
   SPIFFS.begin();
-
   if (M5.MPU6886.Init() != 0)
   {
     Serial.println("MPU6886 error");
@@ -81,10 +76,15 @@ void setup()
     imu_initialized = true;
   }
 
+  // reset LED to off
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+
   if (CLEAR_SETTINGS_ON_LOAD)
   {
     settings_clear();
   }
+
   main_splash();
   settings_load();
   main_start();
