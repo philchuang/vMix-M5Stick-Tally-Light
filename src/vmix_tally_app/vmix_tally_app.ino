@@ -9,7 +9,7 @@
 
 #include "AppSettings.h"
 #include "AppSettingsManager.h"
-#include "BatteryLevel.h"
+#include "BatteryManager.h"
 
 #define LED_BUILTIN 10
 #define EEPROM_SIZE 512
@@ -32,9 +32,10 @@
 #define VMIX_KEEPALIVE_MS 5000
 #define VMIX_RESPONSE_MS 100
 #define APP_ORIENTATION_MS 500
-#define APP_SCREENREFRESH_MS 5000
+#define APP_SCREENREFRESH_MS 10000
 #define M5_CHARGING_MS 5000
 #define M5_BATTERYLEVEL_MS 30000
+#define APP_BRIGHTNESS_TIMEOUT_MS 1000
 
 #define FONT 1
 

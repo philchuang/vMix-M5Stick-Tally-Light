@@ -13,8 +13,9 @@
 // #define VMIX_KEEPALIVE_MS 5000
 // #define VMIX_RESPONSE_MS 100
 // #define APP_ORIENTATION_MS 500
-// #define APP_SCREENREFRESH_MS 500
+// #define APP_SCREENREFRESH_MS 10000
 // #define M5_BATTERYLEVEL_MS 30000
+// #define APP_BRIGHTNESS_TIMEOUT_MS 5000
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
 // #include <SPIFFS.h>
@@ -22,7 +23,7 @@
 // #include <WiFi.h>
 // #include <PinButton.h>
 // #include "AppSettings.h"
-// #include "BatteryLevel.h"
+// #include "BatteryManager.h"
 // #include "01_config.ino"
 // #include "02_settings.ino"
 // #include "04_wifi.ino"
@@ -36,7 +37,7 @@
 // bool isCharging = false;
 // intellisense support only, comment out before building
 
-BatteryLevel battery = BatteryLevel();
+BatteryManager battery = BatteryManager();
 
 PinButton btnM5 = PinButton(37);
 PinButton btnSide = PinButton(39);
@@ -49,12 +50,15 @@ bool imu_initialized = false;
 bool wifi_isConnected = false;
 bool vmix_isConnected = false;
 byte orientation = 0; // 0 = horizontal, 1 = vertical
+unsigned int app_lastBrightness = 0;
 unsigned long conn_NextKeepAliveCheck = 0;
 unsigned long conn_NextVmixResponseCheck = 0;
 unsigned long app_NextOrientationCheck = 0;
 unsigned long app_NextScreenRefreshCheck = 0;
 unsigned long m5_NextChargingCheck = 0;
 unsigned long m5_NextBatteryLevelCheck = 0;
+unsigned int app_lastForegroundColor;
+unsigned int app_lastBackgroundColor;
 
 void setup()
 {
@@ -186,7 +190,7 @@ void loop()
   main_checkOrientation(timestamp);
   main_checkScreenRefresh(timestamp);
 
-  if (main_handleButtons())
+  if (main_handleButtons(timestamp))
   {
     return;
   }
@@ -236,7 +240,7 @@ void main_checkBatteryLevel(unsigned long timestamp)
   if (performBatteryLevelCheck)
   {
     m5_NextBatteryLevelCheck = timestamp + M5_BATTERYLEVEL_MS;
-    currentBatteryLevel = battery.get();
+    currentBatteryLevel = battery.getBatteryLevel();
   }
 }
 
@@ -309,6 +313,7 @@ void main_updateRotation(byte newRotation)
 
 void main_checkScreenRefresh(unsigned long timestamp)
 {
+  // TODO draw overlays like battery indicator
   bool performScreenRefresh = timestamp > app_NextScreenRefreshCheck;
   if (performScreenRefresh)
   {
@@ -319,13 +324,21 @@ void main_checkScreenRefresh(unsigned long timestamp)
 
 void main_refreshScreen()
 {
-  if (currentScreen == SCREEN_SETTINGS)
+  if (currentScreen == SCREEN_TALLY)
+  {
+    vmix_showTallyScreen(settings.getVmixTally());
+  }
+  else if (currentScreen == SCREEN_TALLY_NR)
+  {
+    vmix_showTallyNumberScreen(settings.getVmixTally());
+  }
+  else if (currentScreen == SCREEN_SETTINGS)
   {
     settings_renderscreen();
   }
 }
 
-bool main_handleButtons()
+bool main_handleButtons(unsigned long timestamp)
 {
   bool breakLoop = false;
 
@@ -337,6 +350,10 @@ bool main_handleButtons()
     if (btnM5.isSingleClick())
     {
       vmix_showTallyNumberScreen(settings.getVmixTally());
+    }
+    else if (btnM5.isLongClick())
+    {
+      main_cycleBacklight(timestamp);
     }
     else if (btnSide.isSingleClick())
     {
@@ -352,6 +369,10 @@ bool main_handleButtons()
     if (btnM5.isSingleClick())
     {
       settings_showscreen();
+    }
+    else if (btnM5.isLongClick())
+    {
+      main_cycleBacklight(timestamp);
     }
     else if (btnSide.isDoubleClick())
     {
@@ -407,6 +428,45 @@ bool main_handleButtons()
   }
 
   return breakLoop;
+}
+
+void main_setScreenColors(unsigned int foregroundColor, unsigned int backgroundColor){
+  app_lastForegroundColor = foregroundColor;
+  app_lastBackgroundColor = backgroundColor;
+  M5.Lcd.setTextColor(foregroundColor, backgroundColor);
+}
+
+void main_cycleBacklight(unsigned long timestamp)
+{
+  app_NextScreenRefreshCheck = timestamp + APP_BRIGHTNESS_TIMEOUT_MS;
+
+  char *brightnessString = new char[4];
+  M5.Lcd.setTextSize(1);
+  M5.Lcd.setTextDatum(MC_DATUM);
+
+  M5.Lcd.setTextColor(app_lastBackgroundColor);
+  sprintf(brightnessString, "%d%%", app_lastBrightness);
+  if (orientation == 0)
+  {
+    M5.Lcd.drawString(brightnessString, 80, 80, FONT);
+  }
+  else if (orientation == 1)
+  {
+    M5.Lcd.drawString(brightnessString, 40, 160, FONT);
+  }
+  
+  app_lastBrightness = battery.cycleBacklight();
+
+  M5.Lcd.setTextColor(app_lastForegroundColor);
+  sprintf(brightnessString, "%d%%", app_lastBrightness);
+  if (orientation == 0)
+  {
+    M5.Lcd.drawString(brightnessString, 80, 80, FONT);
+  }
+  else if (orientation == 1)
+  {
+    M5.Lcd.drawString(brightnessString, 40, 160, FONT);
+  }
 }
 
 void main_pollVmix(unsigned long timestamp)

@@ -58,9 +58,11 @@ Using the IDE, compile and upload to your M5StickC.
     1. `LIVE`: input is live
     1. `????`: tally status unavailable
     1. M5 button single-click: display the tally number screen
+    1. M5 button long-click: cycle screen brightness
     1. Side button long-click: QuickPlay this input
 1. The second screen is the tally number
     1. M5 button single-click: display the connection settings screen
+    1. M5 button long-click: cycle screen brightness
     1. Side button double-click: increment the tally number
     1. Side button long-click: reset tally number to 1
 1. The third screen is the settings
@@ -71,9 +73,10 @@ Using the IDE, compile and upload to your M5StickC.
 ## TODO
 
 * [ ]  Battery indicator on all screens
+* [ ]  Detect and indicate when battery is fully charged
 * [ ]  Decrease battery usage / confirm minimum working voltage
 * [ ]  Use Preferences.h instead of EEPROM.h for settings
-* [ ]  Restore last used settings on boot (instead of just #1)
+* [ ]  Restore last used settings on boot (instead of just #1) OR ability to select settings on boot
 * [ ]  Continued cleanup and refactor of logic - event-driven model
 * [ ]  Hard-reset capability from settings or error screen
 * [ ]  Access Point mode when not connected to a WiFi network

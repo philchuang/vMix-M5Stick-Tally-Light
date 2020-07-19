@@ -37,7 +37,7 @@ bool vmix_connect(const char *addr, unsigned short port)
   cls();
   main_updateOrientation(0);
   M5.Lcd.setTextSize(1);
-  M5.Lcd.setTextColor(WHITE, BLACK);
+  main_setScreenColors(WHITE, BLACK);
   Serial.println("Connecting to vMix...");
   M5.Lcd.println("Connecting to vMix...");
 
@@ -176,7 +176,7 @@ void vmix_renderTallyProgram(unsigned short tally)
   }
 
   M5.Lcd.fillScreen(RED);
-  M5.Lcd.setTextColor(WHITE, RED);
+  main_setScreenColors(WHITE, RED);
   if (currentScreen == SCREEN_TALLY)
   {
     vmix_renderTallyText("LIVE");
@@ -196,7 +196,7 @@ void vmix_renderTallyPreview(unsigned short tally)
   }
 
   M5.Lcd.fillScreen(GREEN);
-  M5.Lcd.setTextColor(BLACK, GREEN);
+  main_setScreenColors(BLACK, GREEN);
   if (currentScreen == SCREEN_TALLY)
   {
     vmix_renderTallyText("PRE");
@@ -216,7 +216,7 @@ void vmix_renderTallySafe(unsigned short tally)
   }
 
   M5.Lcd.fillScreen(BLACK);
-  M5.Lcd.setTextColor(WHITE, BLACK);
+  main_setScreenColors(WHITE, BLACK);
   if (currentScreen == SCREEN_TALLY)
   {
     vmix_renderTallyText("SAFE");
@@ -236,7 +236,7 @@ void vmix_renderTallyNone(unsigned short tally)
   }
 
   M5.Lcd.fillScreen(BLACK);
-  M5.Lcd.setTextColor(YELLOW, BLACK);
+  main_setScreenColors(YELLOW, BLACK);
   if (currentScreen == SCREEN_TALLY)
   {
     vmix_renderTallyText("????");

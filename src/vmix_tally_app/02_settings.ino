@@ -109,7 +109,7 @@ void settings_renderscreen()
   cls();
   main_updateOrientation(0);
   M5.Lcd.setTextSize(1);
-  M5.Lcd.setTextColor(WHITE, BLACK);
+  main_setScreenColors(WHITE, BLACK);
   M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx + 1, MAX_SETTINGS_NR);
   M5.Lcd.printf("-SSID: %s\n", settings.getWifiSsid());
   M5.Lcd.printf("-IP: ");
@@ -130,7 +130,7 @@ void settings_renderscreen()
   }
   else
   {
-    M5.Lcd.printf("Battery: %3.0.f%%\n", currentBatteryLevel);
+    M5.Lcd.printf("Battery: %3.0f%%\n", currentBatteryLevel);
   }
   
   M5.Lcd.println();

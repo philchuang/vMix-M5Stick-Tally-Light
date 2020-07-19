@@ -6,13 +6,8 @@
 
 struct AppSettings::Impl
 {
-    Impl()
-    {
-    }
-
-    ~Impl()
-    {
-    }
+    Impl() { }
+    ~Impl() { }
 
     char *_WifiSsid = new char[AppSettings_WifiSsidMaxLength];
     char *_WifiPassphrase = new char[AppSettings_WifiPassMaxLength];

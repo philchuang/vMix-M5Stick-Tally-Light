@@ -1,5 +1,5 @@
-#ifndef BatteryLevel_h
-#define BatteryLevel_h
+#ifndef BatteryManager_h
+#define BatteryManager_h
 
 #define ESP32
 #define UNKNOWN_CONSTANT 1.1 // seriously what is this
@@ -10,19 +10,14 @@
 #include <M5StickC.h>
 #include <AXP192.h>
 
-class BatteryLevel
+class BatteryManager
 {
 public:
-    BatteryLevel()
+    BatteryManager();
+    ~BatteryManager();
+    double getBatteryLevel()
     {
-        M5.Axp.begin();
-    }
-    ~BatteryLevel()
-    {
-    }
-    double get()
-    {
-        // https://forum.m5stack.com/topic/1361/ischarging-and-getbatterylevel/7
+        // https://forum.m5stack.com/topic/1361/ischarging-and-getBatteryManager/7
 
         // impl #1
         /*
@@ -38,8 +33,8 @@ public:
         // unplugged: 4.068 V (fully charged)
         // unplugged: 3.066 V (45 minutes later, about to turn off)
 
-        double batteryLevel = 100.0 * ((vaps - 3.0) / (vbat - 3.0));
-        M5.Lcd.printf("batteryLevel: %.0f%%    ", batteryLevel);
+        double BatteryManager = 100.0 * ((vaps - 3.0) / (vbat - 3.0));
+        M5.Lcd.printf("BatteryManager: %.0f%%    ", BatteryManager);
         */
 
        // TODO confirm minimum working voltage
@@ -53,8 +48,12 @@ public:
     {
         return M5.Axp.GetInputPowerStatus() >> 2 > 0;
     }
+    unsigned int cycleBacklight();
 
 private:
+    class Impl;
+    Impl *_pimpl;
+    unsigned int _backlight = 15;
 };
 
 #endif

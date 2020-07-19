@@ -3,6 +3,7 @@
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
 // #include <WiFi.h>
+// #include "03_app.ino"
 // #include "99_utils.ino"
 // intellisense support only, comment out before building
 
@@ -15,6 +16,7 @@ bool wifi_connect(const char *ssid, const char *passphrase)
   cls();
   main_updateOrientation(0);
   M5.Lcd.setTextSize(1);
+  main_setScreenColors(WHITE, BLACK);
   M5.Lcd.print("Connecting to WiFi...");
 
   if (WiFi.status() == WL_CONNECTED)
