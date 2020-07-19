@@ -116,12 +116,14 @@ void settings_renderscreen()
   M5.Lcd.println(WiFi.localIP());
   M5.Lcd.printf("-vMix: %s\n", settings.getVmixAddressWithPort());
   M5.Lcd.printf("-TALLY: %d\n", settings.getVmixTally());
-  M5.Lcd.printf("Reconnections: %u\n", conn_Reconnections);
+  //M5.Lcd.printf("Reconnections: %u\n", conn_Reconnections);
+  
   unsigned long timestamp = millis();
   unsigned long hours = timestamp / 1000 / 60 / 60;
   unsigned long minutes = (timestamp - (hours * 1000 * 60 * 60)) / 1000 / 60;
   unsigned long seconds = (timestamp - (hours * 1000 * 60 * 60) - (minutes * 1000 * 60)) / 1000;
   M5.Lcd.printf("Runtime: %02u:%02u:%02u\n", hours, minutes, seconds);
+
   if (isCharging)
   {
     M5.Lcd.printf("Battery: CHARGING\n");
@@ -130,6 +132,7 @@ void settings_renderscreen()
   {
     M5.Lcd.printf("Battery: %3.0.f%%\n", currentBatteryLevel);
   }
+  
   M5.Lcd.println();
   M5.Lcd.println("Hold side btn to swap settings.");
 }

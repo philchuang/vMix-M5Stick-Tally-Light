@@ -70,9 +70,10 @@ Using the IDE, compile and upload to your M5StickC.
 
 ## TODO
 
-* [ ]  Battery indicator
-* [ ]  Decrease battery usage
-* [ ]  Settings screen refresh timer
+* [ ]  Battery indicator on all screens
+* [ ]  Decrease battery usage / confirm minimum working voltage
+* [ ]  Use Preferences.h instead of EEPROM.h for settings
+* [ ]  Restore last used settings on boot (instead of just #1)
 * [ ]  Continued cleanup and refactor of logic - event-driven model
 * [ ]  Hard-reset capability from settings or error screen
 * [ ]  Access Point mode when not connected to a WiFi network

@@ -10,6 +10,8 @@
         "initializer_list": "cpp",
         "functional": "cpp",
         "istream": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp"
     }
 }

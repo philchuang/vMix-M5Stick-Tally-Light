@@ -13,6 +13,7 @@
 // #define VMIX_KEEPALIVE_MS 5000
 // #define VMIX_RESPONSE_MS 100
 // #define APP_ORIENTATION_MS 500
+// #define APP_SCREENREFRESH_MS 500
 // #define M5_BATTERYLEVEL_MS 30000
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
@@ -51,6 +52,7 @@ byte orientation = 0; // 0 = horizontal, 1 = vertical
 unsigned long conn_NextKeepAliveCheck = 0;
 unsigned long conn_NextVmixResponseCheck = 0;
 unsigned long app_NextOrientationCheck = 0;
+unsigned long app_NextScreenRefreshCheck = 0;
 unsigned long m5_NextChargingCheck = 0;
 unsigned long m5_NextBatteryLevelCheck = 0;
 
@@ -182,6 +184,7 @@ void loop()
 
   main_checkBatteryLevel(timestamp);
   main_checkOrientation(timestamp);
+  main_checkScreenRefresh(timestamp);
 
   if (main_handleButtons())
   {
@@ -223,13 +226,13 @@ void main_updateTally(unsigned short tally)
 
 void main_checkBatteryLevel(unsigned long timestamp)
 {
-  bool performChargingCheck = timestamp > m5_NextChargingCheck + M5_CHARGING_MS;
+  bool performChargingCheck = timestamp > m5_NextChargingCheck;
   if (performChargingCheck)
   {
     m5_NextChargingCheck = timestamp + M5_CHARGING_MS;
     isCharging = battery.isCharging();
   }
-  bool performBatteryLevelCheck = timestamp > m5_NextBatteryLevelCheck + M5_BATTERYLEVEL_MS;
+  bool performBatteryLevelCheck = timestamp > m5_NextBatteryLevelCheck;
   if (performBatteryLevelCheck)
   {
     m5_NextBatteryLevelCheck = timestamp + M5_BATTERYLEVEL_MS;
@@ -244,7 +247,7 @@ void main_checkOrientation(unsigned long timestamp)
     return;
   }
 
-  bool performOrientationCheck = timestamp > app_NextOrientationCheck + APP_ORIENTATION_MS;
+  bool performOrientationCheck = timestamp > app_NextOrientationCheck;
   if (performOrientationCheck)
   {
     app_NextOrientationCheck = timestamp + APP_ORIENTATION_MS;
@@ -302,6 +305,24 @@ void main_updateRotation(byte newRotation)
 
   M5.Lcd.setRotation(newRotation);
   main_renderScreen();
+}
+
+void main_checkScreenRefresh(unsigned long timestamp)
+{
+  bool performScreenRefresh = timestamp > app_NextScreenRefreshCheck;
+  if (performScreenRefresh)
+  {
+    app_NextScreenRefreshCheck = timestamp + APP_SCREENREFRESH_MS;
+    main_refreshScreen();
+  }
+}
+
+void main_refreshScreen()
+{
+  if (currentScreen == SCREEN_SETTINGS)
+  {
+    settings_renderscreen();
+  }
 }
 
 bool main_handleButtons()
