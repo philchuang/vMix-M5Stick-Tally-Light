@@ -100,10 +100,10 @@ void main_splash()
   main_updateOrientation(0);
   M5.Lcd.setTextDatum(MC_DATUM);
   M5.Lcd.setCursor(20, 15);
-  M5.Lcd.drawString("vMix M5Stick-C Tally", 80, 15, FONT);
+  M5.Lcd.drawString("vMix M5Stick-C Tally", 80, 15, FONT + 1);
   M5.Lcd.setCursor(35, 35);
   M5.Lcd.drawString("by Phil Chuang", 80, 35, FONT);
-  M5.Lcd.setCursor(40, 55);
+  M5.Lcd.setCursor(40, 50);
   M5.Lcd.drawString("& Guido Visser", 80, 55, FONT);
   delay(2000);
 }
