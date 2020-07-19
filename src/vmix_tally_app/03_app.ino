@@ -16,12 +16,12 @@
 // #define M5_BATTERYLEVEL_MS 30000
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
-// #include <AXP192.h>
 // #include <SPIFFS.h>
 // #include <EEPROM.h>
 // #include <WiFi.h>
 // #include <PinButton.h>
 // #include "AppSettings.h"
+// #include "BatteryLevel.h"
 // #include "01_config.ino"
 // #include "02_settings.ino"
 // #include "04_wifi.ino"
@@ -34,6 +34,8 @@
 // double currentBatteryLevel;
 // bool isCharging = false;
 // intellisense support only, comment out before building
+
+BatteryLevel battery = BatteryLevel();
 
 PinButton btnM5 = PinButton(37);
 PinButton btnSide = PinButton(39);
@@ -49,6 +51,7 @@ byte orientation = 0; // 0 = horizontal, 1 = vertical
 unsigned long conn_NextKeepAliveCheck = 0;
 unsigned long conn_NextVmixResponseCheck = 0;
 unsigned long app_NextOrientationCheck = 0;
+unsigned long m5_NextChargingCheck = 0;
 unsigned long m5_NextBatteryLevelCheck = 0;
 
 void setup()
@@ -59,7 +62,6 @@ void setup()
 
   Serial.begin(115200);
   M5.begin();
-  // M5.Axp.begin();
   Wire.begin();
   delay(10);
   M5.Lcd.setRotation(3);
@@ -94,13 +96,13 @@ void main_splash()
 {
   cls();
   main_updateOrientation(0);
-  // TODO use drawstring
+  M5.Lcd.setTextDatum(MC_DATUM);
   M5.Lcd.setCursor(20, 15);
-  M5.Lcd.println("vMix M5Stick-C Tally");
+  M5.Lcd.drawString("vMix M5Stick-C Tally", 80, 15, FONT);
   M5.Lcd.setCursor(35, 35);
-  M5.Lcd.println("by Phil Chuang");
+  M5.Lcd.drawString("by Phil Chuang", 80, 35, FONT);
   M5.Lcd.setCursor(40, 55);
-  M5.Lcd.println("& Guido Visser");
+  M5.Lcd.drawString("& Guido Visser", 80, 55, FONT);
   delay(2000);
 }
 
@@ -221,17 +223,17 @@ void main_updateTally(unsigned short tally)
 
 void main_checkBatteryLevel(unsigned long timestamp)
 {
-  isCharging = M5.Axp.GetInputPowerStatus() > 0;
+  bool performChargingCheck = timestamp > m5_NextChargingCheck + M5_CHARGING_MS;
+  if (performChargingCheck)
+  {
+    m5_NextChargingCheck = timestamp + M5_CHARGING_MS;
+    isCharging = battery.isCharging();
+  }
   bool performBatteryLevelCheck = timestamp > m5_NextBatteryLevelCheck + M5_BATTERYLEVEL_MS;
   if (performBatteryLevelCheck)
   {
     m5_NextBatteryLevelCheck = timestamp + M5_BATTERYLEVEL_MS;
-    // TODO fix this, not quite working right
-    // https://forum.m5stack.com/topic/1361/ischarging-and-getbatterylevel/7
-    // currentBatteryLevel = M5.Axp.GetBatPower();
-      unsigned int vbatData = M5.Axp.GetVbatData();
-      double vbat = vbatData * 1.1 / 1000;
-      return 100.0 * ((vbat - 3.0) / (4.07 - 3.0));
+    currentBatteryLevel = battery.get();
   }
 }
 

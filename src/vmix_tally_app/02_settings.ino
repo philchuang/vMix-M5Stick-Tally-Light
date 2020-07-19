@@ -9,12 +9,15 @@
 // #include "AppSettings.h"
 // #include "AppSettingsManager.h"
 // #include "01_config.ino"
+// #include "03_app.ino"
 // #include "99_utils.ino"
 // AppSettingsManager settingsMgr = AppSettingsManager(EEPROM_SIZE, MAX_SETTINGS_NR);
 // byte settingsIdx = 0;
 // AppSettings settings = AppSettings();
 // byte currentScreen;
 // unsigned int conn_Reconnections = 0;
+// double currentBatteryLevel;
+// bool isCharging = false;
 // intellisense support only, comment out before building
 
 // APPSETTINGS_SIZE * MAX_SETTINGS_NR cannot exceed EEPROM_SIZE
@@ -125,7 +128,7 @@ void settings_renderscreen()
   }
   else
   {
-    M5.Lcd.printf("Battery: %2.0.f%%\n", currentBatteryLevel);
+    M5.Lcd.printf("Battery: %3.0.f%%\n", currentBatteryLevel);
   }
   M5.Lcd.println();
   M5.Lcd.println("Hold side btn to swap settings.");

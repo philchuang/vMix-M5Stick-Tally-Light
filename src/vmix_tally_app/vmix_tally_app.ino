@@ -2,7 +2,6 @@
 
 #include <HardwareSerial.h>
 #include <M5StickC.h>
-#include <AXP192.h>
 #include <WiFi.h>
 #include <SPIFFS.h>
 #include <EEPROM.h>
@@ -10,6 +9,7 @@
 
 #include "AppSettings.h"
 #include "AppSettingsManager.h"
+#include "BatteryLevel.h"
 
 #define LED_BUILTIN 10
 #define EEPROM_SIZE 512
@@ -32,6 +32,7 @@
 #define VMIX_KEEPALIVE_MS 5000
 #define VMIX_RESPONSE_MS 100
 #define APP_ORIENTATION_MS 500
+#define M5_CHARGING_MS 5000
 #define M5_BATTERYLEVEL_MS 30000
 
 #define FONT 1
@@ -42,5 +43,5 @@ AppSettings settings;
 char currentTallyState = TALLY_NONE;
 byte currentScreen = SCREEN_START;
 unsigned int conn_Reconnections = 0;
-float currentBatteryLevel = 100.0f;
 bool isCharging = false;
+double currentBatteryLevel;

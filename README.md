@@ -71,7 +71,9 @@ Using the IDE, compile and upload to your M5StickC.
 ## TODO
 
 * [ ]  Battery indicator
-* [ ]  Continued cleanup and refactor of logic
+* [ ]  Decrease battery usage
+* [ ]  Settings screen refresh timer
+* [ ]  Continued cleanup and refactor of logic - event-driven model
 * [ ]  Hard-reset capability from settings or error screen
 * [ ]  Access Point mode when not connected to a WiFi network
 * [ ]  Webserver for easy configuration
