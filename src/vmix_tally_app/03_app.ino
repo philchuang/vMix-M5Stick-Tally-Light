@@ -61,6 +61,7 @@ unsigned long m5_NextChargingCheck = 0;
 unsigned long m5_NextBatteryLevelCheck = 0;
 unsigned short app_lastForegroundColor = WHITE;
 unsigned short app_lastBackgroundColor = BLACK;
+bool saveUptimeInfo = true;
 
 void setup()
 {
@@ -89,6 +90,14 @@ void setup()
   main_begin();
   main_splash();
   settings_load();
+
+  // TEMPORARY
+  //settingsMgr.saveUptimeInfo(0,0);
+  if (settingsMgr.getLastUptime() != 0)
+  {
+    saveUptimeInfo = false;
+  }
+
   main_start();
 
   // server.on("/", handle_root);
@@ -248,6 +257,12 @@ void main_checkBatteryLevel(unsigned long timestamp)
   {
     m5_NextBatteryLevelCheck = timestamp + M5_BATTERYLEVEL_MS;
     currentBatteryLevel = battery.getBatteryLevel();
+
+    // TEMPORARY
+    if (saveUptimeInfo)
+    {
+      settingsMgr.saveUptimeInfo(millis(), currentBatteryLevel);
+    }
   }
 }
 

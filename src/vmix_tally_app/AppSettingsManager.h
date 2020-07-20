@@ -15,6 +15,9 @@ public:
     AppSettings load(unsigned short settingsIdx);
     void save(unsigned short settingsIdx, AppSettings settings);
     void clear(unsigned short settingsIdx);
+    void saveUptimeInfo(unsigned long uptime, double batteryLevel);
+    unsigned long getLastUptime(); // TEMPORARY
+    double getLastBatteryLevel(); // TEMPORARY
 private:
     class Impl;
     Impl *_pimpl;
