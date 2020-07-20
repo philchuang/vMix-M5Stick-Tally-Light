@@ -72,15 +72,22 @@ Using the IDE, compile and upload to your M5StickC.
 
 ## TODO
 
+* [ ]  Use Preferences.h instead of EEPROM.h for settings
 * [ ]  Battery indicator on all screens
 * [ ]  Detect and indicate when battery is fully charged
 * [ ]  Decrease battery usage / confirm minimum working voltage
-* [ ]  Use Preferences.h instead of EEPROM.h for settings
+* [ ]  Battery logging
 * [ ]  Restore last used settings on boot (instead of just #1) OR ability to select settings on boot
 * [ ]  Continued cleanup and refactor of logic - event-driven model
 * [ ]  Hard-reset capability from settings or error screen
 * [ ]  Access Point mode when not connected to a WiFi network
 * [ ]  Webserver for easy configuration
+
+## NOTES
+
+Runtime is 1h7m on LIVE (red screen & LED on) @ 60% brightness.
+Runtime is 1h11m on PRE (green screen & LED off) @ 60% brightness.
+Runtime is 2h2m on SAFE (black screen & LED off) @ 60% brightness.
 
 ## Thanks
 
