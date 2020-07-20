@@ -1,7 +1,6 @@
 // // intellisense support only, comment out before building
 // #define ESP32
 // #define LED_BUILTIN 10
-// #define EEPROM_SIZE 512
 // #define CLEAR_SETTINGS_ON_LOAD true
 // #define TALLY_NONE ' '
 // #define TALLY_NR_MAX 30
@@ -14,30 +13,35 @@
 // #define VMIX_RESPONSE_MS 100
 // #define APP_ORIENTATION_MS 500
 // #define APP_SCREENREFRESH_MS 10000
+// #define M5_CHARGING_MS 5000
 // #define M5_BATTERYLEVEL_MS 30000
 // #define APP_BRIGHTNESS_TIMEOUT_MS 5000
-// #include <HardwareSerial.h>
+// #define APP_ROTATION_THRESHOLD 0.8f
+// #define FONT 1
 // #include <M5StickC.h>
 // #include <SPIFFS.h>
-// #include <EEPROM.h>
 // #include <WiFi.h>
 // #include <PinButton.h>
 // #include "AppSettings.h"
+// #include "AppSettingsManager.h"
 // #include "BatteryManager.h"
+// #include "OrientationManager.h"
 // #include "01_config.ino"
 // #include "02_settings.ino"
 // #include "04_wifi.ino"
 // #include "05_vmix.ino"
 // #include "99_utils.ino"
-// AppSettings settings = AppSettings();
-// byte currentScreen = SCREEN_START;
-// char currentTallyState = TALLY_NONE;
-// unsigned int conn_Reconnections = 0;
+// AppSettings settings;
+// AppSettingsManager settingsMgr;
+// byte currentScreen;
+// char currentTallyState;
+// unsigned int conn_Reconnections;
 // double currentBatteryLevel;
-// bool isCharging = false;
+// bool isCharging;
 // intellisense support only, comment out before building
 
 BatteryManager battery = BatteryManager();
+OrientationManager orientationManager = OrientationManager(APP_ROTATION_THRESHOLD);
 
 PinButton btnM5 = PinButton(37);
 PinButton btnSide = PinButton(39);
@@ -46,10 +50,8 @@ PinButton btnSide = PinButton(39);
 // bool wifi_apEnabled = false; // global variable
 // char wifi_apPass[64];        // global variable
 
-bool imu_initialized = false;
 bool wifi_isConnected = false;
 bool vmix_isConnected = false;
-byte orientation = 0; // 0 = horizontal, 1 = vertical
 unsigned int app_lastBrightness = 0;
 unsigned long conn_NextKeepAliveCheck = 0;
 unsigned long conn_NextVmixResponseCheck = 0;
@@ -57,8 +59,8 @@ unsigned long app_NextOrientationCheck = 0;
 unsigned long app_NextScreenRefreshCheck = 0;
 unsigned long m5_NextChargingCheck = 0;
 unsigned long m5_NextBatteryLevelCheck = 0;
-unsigned int app_lastForegroundColor;
-unsigned int app_lastBackgroundColor;
+unsigned short app_lastForegroundColor = WHITE;
+unsigned short app_lastBackgroundColor = BLACK;
 
 void setup()
 {
@@ -69,16 +71,11 @@ void setup()
   // initialization
   M5.begin();
   Serial.begin(115200);
-  EEPROM.begin(EEPROM_SIZE);
   SPIFFS.begin();
-  if (M5.MPU6886.Init() != 0)
-  {
-    Serial.println("MPU6886 error");
-  }
-  else
-  {
-    imu_initialized = true;
-  }
+
+  battery.setBacklight(60);
+  settingsMgr.begin();
+  orientationManager.begin();
 
   // reset LED to off
   pinMode(LED_BUILTIN, OUTPUT);
@@ -89,6 +86,7 @@ void setup()
     settings_clear();
   }
 
+  main_begin();
   main_splash();
   settings_load();
   main_start();
@@ -96,6 +94,15 @@ void setup()
   // server.on("/", handle_root);
   // server.begin();
   // Serial.println("HTTP server started.");
+}
+
+void main_begin()
+{
+  currentScreen = SCREEN_START;
+  currentTallyState = TALLY_NONE;
+  conn_Reconnections = 0;
+  isCharging = false;
+  currentBatteryLevel = 0;
 }
 
 void main_splash()
@@ -170,8 +177,8 @@ bool main_reconnectVmix()
 
   if (!vmix_connect(settings.getVmixAddress(), settings.getVmixPort()))
   {
-    Serial.println("Unable to connect to vMix!");
     main_updateOrientation(0);
+    Serial.println("Unable to connect to vMix!");
     M5.Lcd.println("Unable to connect to vMix!");
     return false;
   }
@@ -246,69 +253,44 @@ void main_checkBatteryLevel(unsigned long timestamp)
 
 void main_checkOrientation(unsigned long timestamp)
 {
-  if (!imu_initialized)
-  {
-    return;
-  }
-
   bool performOrientationCheck = timestamp > app_NextOrientationCheck;
   if (performOrientationCheck)
   {
     app_NextOrientationCheck = timestamp + APP_ORIENTATION_MS;
-    main_updateOrientation(orientation, 0.8f);
+    unsigned int newRotation = orientationManager.checkRotationChange();
+
+    if (newRotation != -1)
+    {
+      main_updateRotation(newRotation);
+    }
   }
 }
 
 void main_updateOrientation(byte newOrientation)
 {
-  main_updateOrientation(newOrientation, 0.0f);
+  main_updateOrientation(newOrientation, true);
 }
 
-void main_updateOrientation(byte newOrientation, float threshold)
+void main_updateOrientation(byte newOrientation, bool force)
 {
-  orientation = newOrientation;
+  orientationManager.setOrientation(newOrientation);
 
-  float accX = 0;
-  float accY = 0;
-  float accZ = 0;
+  unsigned int newRotation;
+  newRotation = force ? orientationManager.checkRotationChange(0.0f) : orientationManager.checkRotationChange();
 
-  M5.MPU6886.getAccelData(&accX, &accY, &accZ);
-
-  if (orientation == 0)
+  if (newRotation != -1)
   {
-    if (accX > threshold)
-    {
-      main_updateRotation(1);
-    }
-    else if (accX < -threshold)
-    {
-      main_updateRotation(3);
-    }
-  }
-  else if (orientation == 1)
-  {
-    if (accY > threshold)
-    {
-      main_updateRotation(0);
-    }
-    else if (accY < -threshold)
-    {
-      main_updateRotation(2);
-    }
+    main_updateRotation(newRotation);
   }
 }
 
 void main_updateRotation(byte newRotation)
 {
-  byte currentRotation = M5.Lcd.getRotation();
-
-  if (currentRotation == newRotation)
+  if (newRotation != orientationManager.getRotation())
   {
-    return;
+    orientationManager.setRotation(newRotation);
+    main_renderScreen();
   }
-
-  M5.Lcd.setRotation(newRotation);
-  main_renderScreen();
 }
 
 void main_checkScreenRefresh(unsigned long timestamp)
@@ -318,23 +300,7 @@ void main_checkScreenRefresh(unsigned long timestamp)
   if (performScreenRefresh)
   {
     app_NextScreenRefreshCheck = timestamp + APP_SCREENREFRESH_MS;
-    main_refreshScreen();
-  }
-}
-
-void main_refreshScreen()
-{
-  if (currentScreen == SCREEN_TALLY)
-  {
-    vmix_showTallyScreen(settings.getVmixTally());
-  }
-  else if (currentScreen == SCREEN_TALLY_NR)
-  {
-    vmix_showTallyNumberScreen(settings.getVmixTally());
-  }
-  else if (currentScreen == SCREEN_SETTINGS)
-  {
-    settings_renderscreen();
+    main_renderScreen();
   }
 }
 
@@ -430,7 +396,8 @@ bool main_handleButtons(unsigned long timestamp)
   return breakLoop;
 }
 
-void main_setScreenColors(unsigned int foregroundColor, unsigned int backgroundColor){
+void main_setScreenColors(unsigned short foregroundColor, unsigned short backgroundColor)
+{
   app_lastForegroundColor = foregroundColor;
   app_lastBackgroundColor = backgroundColor;
   M5.Lcd.setTextColor(foregroundColor, backgroundColor);
@@ -446,24 +413,24 @@ void main_cycleBacklight(unsigned long timestamp)
 
   M5.Lcd.setTextColor(app_lastBackgroundColor);
   sprintf(brightnessString, "%d%%", app_lastBrightness);
-  if (orientation == 0)
+  if (!orientationManager.getOrientation())
   {
     M5.Lcd.drawString(brightnessString, 80, 80, FONT);
   }
-  else if (orientation == 1)
+  else
   {
     M5.Lcd.drawString(brightnessString, 40, 160, FONT);
   }
-  
+
   app_lastBrightness = battery.cycleBacklight();
 
   M5.Lcd.setTextColor(app_lastForegroundColor);
   sprintf(brightnessString, "%d%%", app_lastBrightness);
-  if (orientation == 0)
+  if (!orientationManager.getOrientation())
   {
     M5.Lcd.drawString(brightnessString, 80, 80, FONT);
   }
-  else if (orientation == 1)
+  else
   {
     M5.Lcd.drawString(brightnessString, 40, 160, FONT);
   }
@@ -518,7 +485,11 @@ void main_pollKeepAlive(unsigned long timestamp)
 
 void main_renderScreen()
 {
-  if (currentScreen == SCREEN_TALLY)
+  if (currentScreen == SCREEN_START)
+  {
+    // do nothing
+  }
+  else if (currentScreen == SCREEN_TALLY)
   {
     vmix_showTallyScreen(settings.getVmixTally());
   }
@@ -532,7 +503,7 @@ void main_renderScreen()
   }
   else if (currentScreen == SCREEN_ERROR)
   {
-    // does nothing
+    // do nothing
   }
 }
 

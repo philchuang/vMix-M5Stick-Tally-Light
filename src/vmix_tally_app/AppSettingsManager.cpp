@@ -1,3 +1,5 @@
+#define ESP32
+
 #include "AppSettings.h"
 #include "AppSettingsManager.h"
 #include <stdio.h>
@@ -28,6 +30,11 @@ AppSettingsManager::AppSettingsManager(unsigned short eepromSize, unsigned short
 }
 
 AppSettingsManager::~AppSettingsManager() = default;
+
+void AppSettingsManager::begin()
+{
+  EEPROM.begin(_pimpl->_EepromSize);
+}
 
 AppSettings AppSettingsManager::load(unsigned short settingsIdx)
 {

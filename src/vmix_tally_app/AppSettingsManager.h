@@ -11,6 +11,7 @@ class AppSettingsManager
 public:
     AppSettingsManager(unsigned short eepromSize, unsigned short numSettings);
     ~AppSettingsManager();
+    void begin();
     AppSettings load(unsigned short settingsIdx);
     void save(unsigned short settingsIdx, AppSettings settings);
     void clear(unsigned short settingsIdx);

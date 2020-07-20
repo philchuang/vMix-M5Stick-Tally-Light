@@ -4,15 +4,14 @@
 #include <M5StickC.h>
 #include <WiFi.h>
 #include <SPIFFS.h>
-#include <EEPROM.h>
 #include <PinButton.h>
 
 #include "AppSettings.h"
 #include "AppSettingsManager.h"
 #include "BatteryManager.h"
+#include "OrientationManager.h"
 
 #define LED_BUILTIN 10
-#define EEPROM_SIZE 512
 #define CLEAR_SETTINGS_ON_LOAD false
 
 #define SCREEN_START 0
@@ -36,14 +35,14 @@
 #define M5_CHARGING_MS 5000
 #define M5_BATTERYLEVEL_MS 30000
 #define APP_BRIGHTNESS_TIMEOUT_MS 1000
-
+#define APP_ROTATION_THRESHOLD 0.8f
 #define FONT 1
 
 // GLOBAL STATE
 AppSettings settings;
 // WebServer server(80);
-char currentTallyState = TALLY_NONE;
-byte currentScreen = SCREEN_START;
-unsigned int conn_Reconnections = 0;
-bool isCharging = false;
+char currentTallyState;
+byte currentScreen;
+unsigned int conn_Reconnections;
+bool isCharging;
 double currentBatteryLevel;

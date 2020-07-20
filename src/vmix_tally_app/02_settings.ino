@@ -1,6 +1,5 @@
 // intellisense support only, comment out before building
 // #define ESP32
-// #define EEPROM_SIZE 512
 // #define MAX_SETTINGS_NR 2
 // #define SCREEN_SETTINGS 1
 // #include <HardwareSerial.h>
@@ -11,7 +10,6 @@
 // #include "01_config.ino"
 // #include "03_app.ino"
 // #include "99_utils.ino"
-// AppSettingsManager settingsMgr = AppSettingsManager(EEPROM_SIZE, MAX_SETTINGS_NR);
 // byte settingsIdx = 0;
 // AppSettings settings = AppSettings();
 // byte currentScreen;
@@ -19,6 +17,8 @@
 // double currentBatteryLevel;
 // bool isCharging = false;
 // intellisense support only, comment out before building
+
+#define EEPROM_SIZE 512
 
 // APPSETTINGS_SIZE * MAX_SETTINGS_NR cannot exceed EEPROM_SIZE
 #ifdef SETTINGS1_WIFI_SSID

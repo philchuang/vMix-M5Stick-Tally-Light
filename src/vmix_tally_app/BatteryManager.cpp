@@ -31,3 +31,12 @@ unsigned int BatteryManager::cycleBacklight()
     M5.Axp.ScreenBreath(_pimpl->_backlight);
     return 100 * (_pimpl->_backlight - MIN_BRIGHTNESS + 1) / (MAX_BRIGHTNESS - MIN_BRIGHTNESS + 1);
 }
+
+void BatteryManager::setBacklight(unsigned int brightness)
+{
+    unsigned int backlight = brightness / (100 / (MAX_BRIGHTNESS - MIN_BRIGHTNESS + 1)) - 1 + MIN_BRIGHTNESS;
+    if (backlight < MIN_BRIGHTNESS) backlight = MIN_BRIGHTNESS;
+    else if (backlight > MAX_BRIGHTNESS) backlight = MAX_BRIGHTNESS;
+    _pimpl->_backlight = backlight;
+    M5.Axp.ScreenBreath(_pimpl->_backlight);
+}

@@ -49,6 +49,7 @@ public:
         return M5.Axp.GetInputPowerStatus() >> 2 > 0;
     }
     unsigned int cycleBacklight();
+    void setBacklight(unsigned int brightness);
 
 private:
     class Impl;

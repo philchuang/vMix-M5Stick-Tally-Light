@@ -17,8 +17,8 @@
 // #include "02_settings.ino"
 // #include "03_app.ino"
 // #include "99_utils.ino"
-// byte currentScreen = SCREEN_START;
-// char currentTallyState = TALLY_NONE;
+// byte currentScreen;
+// char currentTallyState;
 // intellisense support only, comment out before building
 
 #define VMIX_API_SUBSCRIBE_TALLY "SUBSCRIBE TALLY\r\n"
