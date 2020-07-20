@@ -53,7 +53,6 @@ public:
 private:
     class Impl;
     Impl *_pimpl;
-    unsigned int _backlight = 15;
 };
 
 #endif
