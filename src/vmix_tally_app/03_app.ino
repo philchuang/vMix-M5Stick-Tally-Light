@@ -92,7 +92,9 @@ void setup()
   settings_load();
 
   // TEMPORARY
-  //settingsMgr.saveUptimeInfo(0,0);
+  delay(10000);
+  // settingsMgr.saveUptimeInfo(0,0);
+  // saveUptimeInfo = false;
   if (settingsMgr.getLastUptime() != 0)
   {
     saveUptimeInfo = false;

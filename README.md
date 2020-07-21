@@ -86,8 +86,11 @@ Using the IDE, compile and upload to your M5StickC.
 ## NOTES
 
 Runtime is 1h7m on LIVE (red screen & LED on) @ 60% brightness.
+Runtime is ?h?m on LIVE (black screen & LED on) @ 100% brightness.
 Runtime is 1h11m on PRE (green screen & LED off) @ 60% brightness.
+Runtime is ?h?m on PRE (black screen & LED off) @ 100% brightness.
 Runtime is 2h2m on SAFE (black screen & LED off) @ 60% brightness.
+Runtime is ?h?m on SAFE (black screen & LED off) @ 100% brightness.
 
 ## Thanks
 

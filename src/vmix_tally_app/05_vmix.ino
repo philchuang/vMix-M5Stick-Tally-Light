@@ -10,6 +10,7 @@
 // #define TALLY_LIVE '1'
 // #define TALLY_PRE '2'
 // #define FONT 1
+// #define LOW_POWER_MODE 1
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
 // #include <WiFi.h>
@@ -169,14 +170,24 @@ void vmix_renderTallyNumber(unsigned char tally)
 
 void vmix_renderTallyProgram(unsigned short tally)
 {
-  digitalWrite(LED_BUILTIN, LOW);
+  //if (!LOW_POWER_MODE)
+    digitalWrite(LED_BUILTIN, LOW);
+
   if (currentScreen != SCREEN_TALLY && currentScreen != SCREEN_TALLY_NR)
   {
     return;
   }
 
-  M5.Lcd.fillScreen(RED);
-  main_setScreenColors(WHITE, RED);
+  if (LOW_POWER_MODE)
+  {
+    M5.Lcd.fillScreen(BLACK);
+    main_setScreenColors(RED, BLACK);
+  }
+  else
+  {
+    M5.Lcd.fillScreen(RED);
+    main_setScreenColors(WHITE, RED);
+  }
   if (currentScreen == SCREEN_TALLY)
   {
     vmix_renderTallyText("LIVE");
@@ -195,8 +206,16 @@ void vmix_renderTallyPreview(unsigned short tally)
     return;
   }
 
-  M5.Lcd.fillScreen(GREEN);
-  main_setScreenColors(BLACK, GREEN);
+  if (LOW_POWER_MODE)
+  {
+    M5.Lcd.fillScreen(BLACK);
+    main_setScreenColors(GREEN, BLACK);
+  }
+  else
+  {
+    M5.Lcd.fillScreen(GREEN);
+    main_setScreenColors(BLACK, GREEN);
+  }
   if (currentScreen == SCREEN_TALLY)
   {
     vmix_renderTallyText("PRE");

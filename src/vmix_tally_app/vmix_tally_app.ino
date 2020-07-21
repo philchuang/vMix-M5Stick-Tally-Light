@@ -37,6 +37,7 @@
 #define APP_BRIGHTNESS_TIMEOUT_MS 1000
 #define APP_ROTATION_THRESHOLD 0.8f
 #define FONT 1
+#define LOW_POWER_MODE 1
 
 // GLOBAL STATE
 AppSettings settings;
