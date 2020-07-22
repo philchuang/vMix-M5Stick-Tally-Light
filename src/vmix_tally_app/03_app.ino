@@ -92,9 +92,15 @@ void setup()
   settings_load();
 
   // TEMPORARY
-  delay(10000);
-  // settingsMgr.saveUptimeInfo(0,0);
-  // saveUptimeInfo = false;
+  if (PREPARE_BATTERY_LOGGING)
+  {
+    settingsMgr.saveUptimeInfo(0, 0);
+    saveUptimeInfo = false;
+  }
+  else
+  {
+    delay(10000);
+  }
   if (settingsMgr.getLastUptime() != 0)
   {
     saveUptimeInfo = false;

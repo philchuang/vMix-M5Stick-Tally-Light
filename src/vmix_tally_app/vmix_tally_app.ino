@@ -12,13 +12,16 @@
 #include "OrientationManager.h"
 
 #define LED_BUILTIN 10
-#define CLEAR_SETTINGS_ON_LOAD false
 
-#define SCREEN_START 0
+#define CLEAR_SETTINGS_ON_LOAD false
+#define PREPARE_BATTERY_LOGGING false
+#define HIGH_VIZ_MODE false
+
+#define SCREEN_START    0
 #define SCREEN_SETTINGS 1
-#define SCREEN_TALLY 2
+#define SCREEN_TALLY    2
 #define SCREEN_TALLY_NR 3
-#define SCREEN_ERROR 255
+#define SCREEN_ERROR    255
 
 #define TALLY_NONE '?'
 #define TALLY_SAFE '0'
@@ -37,7 +40,6 @@
 #define APP_BRIGHTNESS_TIMEOUT_MS 1000
 #define APP_ROTATION_THRESHOLD 0.8f
 #define FONT 1
-#define LOW_POWER_MODE 1
 
 // GLOBAL STATE
 AppSettings settings;

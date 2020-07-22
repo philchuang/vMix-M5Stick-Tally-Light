@@ -10,7 +10,7 @@
 // #define TALLY_LIVE '1'
 // #define TALLY_PRE '2'
 // #define FONT 1
-// #define LOW_POWER_MODE 1
+// #define HIGH_VIZ_MODE 0
 // #include <HardwareSerial.h>
 // #include <M5StickC.h>
 // #include <WiFi.h>
@@ -170,23 +170,25 @@ void vmix_renderTallyNumber(unsigned char tally)
 
 void vmix_renderTallyProgram(unsigned short tally)
 {
-  //if (!LOW_POWER_MODE)
+  if (HIGH_VIZ_MODE)
+  {
     digitalWrite(LED_BUILTIN, LOW);
+  }
 
   if (currentScreen != SCREEN_TALLY && currentScreen != SCREEN_TALLY_NR)
   {
     return;
   }
 
-  if (LOW_POWER_MODE)
-  {
-    M5.Lcd.fillScreen(BLACK);
-    main_setScreenColors(RED, BLACK);
-  }
-  else
+  if (HIGH_VIZ_MODE)
   {
     M5.Lcd.fillScreen(RED);
     main_setScreenColors(WHITE, RED);
+  }
+  else
+  {
+    M5.Lcd.fillScreen(BLACK);
+    main_setScreenColors(RED, BLACK);
   }
   if (currentScreen == SCREEN_TALLY)
   {
@@ -200,21 +202,25 @@ void vmix_renderTallyProgram(unsigned short tally)
 
 void vmix_renderTallyPreview(unsigned short tally)
 {
-  digitalWrite(LED_BUILTIN, HIGH);
+  if (HIGH_VIZ_MODE)
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+
   if (currentScreen != SCREEN_TALLY && currentScreen != SCREEN_TALLY_NR)
   {
     return;
   }
 
-  if (LOW_POWER_MODE)
-  {
-    M5.Lcd.fillScreen(BLACK);
-    main_setScreenColors(GREEN, BLACK);
-  }
-  else
+  if (HIGH_VIZ_MODE)
   {
     M5.Lcd.fillScreen(GREEN);
     main_setScreenColors(BLACK, GREEN);
+  }
+  else
+  {
+    M5.Lcd.fillScreen(BLACK);
+    main_setScreenColors(GREEN, BLACK);
   }
   if (currentScreen == SCREEN_TALLY)
   {
@@ -228,7 +234,11 @@ void vmix_renderTallyPreview(unsigned short tally)
 
 void vmix_renderTallySafe(unsigned short tally)
 {
-  digitalWrite(LED_BUILTIN, HIGH);
+  if (HIGH_VIZ_MODE)
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+
   if (currentScreen != SCREEN_TALLY && currentScreen != SCREEN_TALLY_NR)
   {
     return;
@@ -236,6 +246,7 @@ void vmix_renderTallySafe(unsigned short tally)
 
   M5.Lcd.fillScreen(BLACK);
   main_setScreenColors(WHITE, BLACK);
+
   if (currentScreen == SCREEN_TALLY)
   {
     vmix_renderTallyText("SAFE");
@@ -248,14 +259,27 @@ void vmix_renderTallySafe(unsigned short tally)
 
 void vmix_renderTallyNone(unsigned short tally)
 {
-  digitalWrite(LED_BUILTIN, HIGH);
+  if (HIGH_VIZ_MODE)
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+
   if (currentScreen != SCREEN_TALLY && currentScreen != SCREEN_TALLY_NR)
   {
     return;
   }
 
-  M5.Lcd.fillScreen(BLACK);
-  main_setScreenColors(YELLOW, BLACK);
+  if (HIGH_VIZ_MODE)
+  {
+    M5.Lcd.fillScreen(YELLOW);
+    main_setScreenColors(BLACK, YELLOW);
+  }
+  else
+  {
+    M5.Lcd.fillScreen(BLACK);
+    main_setScreenColors(YELLOW, BLACK);
+  }
+
   if (currentScreen == SCREEN_TALLY)
   {
     vmix_renderTallyText("????");

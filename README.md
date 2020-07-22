@@ -72,7 +72,7 @@ Using the IDE, compile and upload to your M5StickC.
 
 ## TODO
 
-* [ ]  Use Preferences.h instead of EEPROM.h for settings
+* [ ]  Use Preferences.h instead of EEPROM.h for settings (maybe keep EEPROM for last used settings & tracking)
 * [ ]  Battery indicator on all screens
 * [ ]  Detect and indicate when battery is fully charged
 * [ ]  Decrease battery usage / confirm minimum working voltage
@@ -82,15 +82,40 @@ Using the IDE, compile and upload to your M5StickC.
 * [ ]  Hard-reset capability from settings or error screen
 * [ ]  Access Point mode when not connected to a WiFi network
 * [ ]  Webserver for easy configuration
+* [ ]  Screens revamp:
+  * [ ]  Tally screen
+    * [ ]  show status in landscape, number in portrait
+    * [ ]  M5 short-press to switch to Settings screen
+    * [ ]  M5 long-press to enter brightness mode
+      * [ ]  M5 short-press to cycle brightness
+      * [ ]  Side short-press to toggle high viz
+      * [ ]  Side long-press?
+      * [ ]  M5 long-press to exit brightness mode
+    * [ ]  Side short-press to QuickPlay
+    * [ ]  Side long-press?
+  * [ ]  Settings screen
+    * [ ]  M5 short-press to switch to Tally screen
+    * [ ]  M5 long-press to enter settings edit mode
+      * [ ]  M5 short-press to cycle through setting screens (settings index, tally number)
+      * [ ]  Side short-press to cycle through setting values
+      * [ ]  Side long-press to reset setting value to default
+      * [ ]  M5 long-press to exit settings edit mode
+    * [ ]  Side short-press?
+    * [ ]  Side long-press?
 
 ## NOTES
 
-Runtime is 1h7m on LIVE (red screen & LED on) @ 60% brightness.
-Runtime is ?h?m on LIVE (black screen & LED on) @ 100% brightness.
-Runtime is 1h11m on PRE (green screen & LED off) @ 60% brightness.
-Runtime is ?h?m on PRE (black screen & LED off) @ 100% brightness.
-Runtime is 2h2m on SAFE (black screen & LED off) @ 60% brightness.
-Runtime is ?h?m on SAFE (black screen & LED off) @ 100% brightness.
+Runtime is 1h07m on LIVE/HIGH (red   bg & LED on)  @  60% brightness.
+Runtime is 1h05m on LIVE/LOW  (black bg & LED on)  @  60% brightness.
+Runtime is 1h39m on LIVE/LOW  (black bg & LED off) @  60% brightness.
+Runtime is 1h00m on LIVE/LOW  (black bg & LED on)  @ 100% brightness.
+
+Runtime is 1h11m on PRE/HIGH (green bg) @  60% brightness.
+Runtime is 1h37m on PRE/LOW  (black bg) @  60% brightness.
+Runtime is 1h20m on PRE/LOW  (black bg) @ 100% brightness.
+
+Runtime is 2h02m on SAFE/LOW (black bg) @  60% brightness.
+Runtime is 1h20m on SAFE/LOW (black bg) @ 100% brightness.
 
 ## Thanks
 

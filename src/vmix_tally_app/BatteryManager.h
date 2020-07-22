@@ -2,8 +2,8 @@
 #define BatteryManager_h
 
 #define ESP32
-#define UNKNOWN_CONSTANT 1.1 // seriously what is this
-#define MAX_WORKING_VOLTAGE 4.07
+#define UNKNOWN_CONSTANT 1.1    // seriously what is this
+#define MAX_WORKING_VOLTAGE 4.1 // 4.07
 #define MIN_WORKING_VOLTAGE 3.07
 
 // #include <Wire.h>
@@ -37,12 +37,12 @@ public:
         M5.Lcd.printf("BatteryManager: %.0f%%    ", BatteryManager);
         */
 
-       // TODO confirm minimum working voltage
+        // TODO confirm minimum working voltage
 
         // impl #2
         unsigned int vbatData = M5.Axp.GetVbatData();
         double vbat = vbatData * UNKNOWN_CONSTANT / 1000;
-        return 100.0 * ((vbat - MIN_WORKING_VOLTAGE) / (MAX_WORKING_VOLTAGE - MIN_WORKING_VOLTAGE));
+        return min(100.0 * ((vbat - MIN_WORKING_VOLTAGE) / (MAX_WORKING_VOLTAGE - MIN_WORKING_VOLTAGE)), 100.0);
     }
     bool isCharging()
     {
