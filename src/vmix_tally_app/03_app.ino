@@ -10,24 +10,25 @@
 // #define SCREEN_TALLY 2
 // #define SCREEN_TALLY_NR 3
 // #define SCREEN_ERROR 255
-// #define VMIX_KEEPALIVE_MS 5000
-// #define VMIX_RESPONSE_MS 100
-// #define APP_ORIENTATION_MS 500
-// #define APP_SCREENREFRESH_MS 10000
-// #define M5_CHARGING_MS 5000
-// #define M5_BATTERYLEVEL_MS 30000
-// #define APP_BRIGHTNESS_TIMEOUT_MS 5000
+// #define VMIX_KEEPALIVE_MS 5000u
+// #define VMIX_RESPONSE_MS 100u
+// #define APP_ORIENTATION_MS 500u
+// #define APP_SCREENREFRESH_MS 10000u
+// #define M5_CHARGING_MS 5000u
+// #define M5_BATTERYLEVEL_MS 30000u
+// #define APP_BRIGHTNESS_TIMEOUT_MS 5000u
 // #define APP_ROTATION_THRESHOLD 0.8f
 // #define FONT 1
+// #include <vector>
 // #include <M5StickC.h>
 // #include <SPIFFS.h>
 // #include <WiFi.h>
 // #include <PinButton.h>
-// #include <vector.h>
 // #include "AppSettings.h"
 // #include "AppSettingsManager.h"
 // #include "BatteryManager.h"
 // #include "OrientationManager.h"
+// #include "LoopEvent.h"
 // #include "01_config.ino"
 // #include "02_settings.ino"
 // #include "04_wifi.ino"
@@ -55,16 +56,11 @@ PinButton btnSide = PinButton(39);
 bool wifi_isConnected = false;
 bool vmix_isConnected = false;
 unsigned int app_lastBrightness = 0;
-unsigned long conn_NextKeepAliveCheck = 0;
-unsigned long conn_NextVmixResponseCheck = 0;
-unsigned long app_NextOrientationCheck = 0;
-unsigned long app_NextScreenRefreshCheck = 0;
-unsigned long m5_NextChargingCheck = 0;
-unsigned long m5_NextBatteryLevelCheck = 0;
 unsigned short app_lastForegroundColor = WHITE;
 unsigned short app_lastBackgroundColor = BLACK;
 bool saveUptimeInfo = true;
-// std::vector<> loopEvents;
+std::vector<LoopEvent> loopEvents;
+LoopEvent screenRefreshCheck(main_checkScreenRefresh, APP_SCREENREFRESH_MS);
 
 void setup()
 {
@@ -124,12 +120,18 @@ void main_begin()
   isCharging = false;
   currentBatteryLevel = 0;
 
-//   main_setupLoopListeners();
-// }
+  main_setupLoopListeners();
+}
 
-// void main_setupLoopListeners()
-// {
-
+void main_setupLoopListeners()
+{
+  loopEvents.push_back(LoopEvent(main_checkIsCharging, M5_CHARGING_MS));
+  loopEvents.push_back(LoopEvent(main_checkBatteryLevel, M5_BATTERYLEVEL_MS));
+  loopEvents.push_back(LoopEvent(main_checkOrientation, APP_ORIENTATION_MS));
+  loopEvents.push_back(screenRefreshCheck);
+  loopEvents.push_back(LoopEvent(main_handleButtons, 0));
+  loopEvents.push_back(LoopEvent(main_pollVmix, VMIX_RESPONSE_MS));
+  loopEvents.push_back(LoopEvent(main_pollKeepAlive, VMIX_KEEPALIVE_MS));
 }
 
 void main_splash()
@@ -189,8 +191,6 @@ bool main_reconnectWifi()
 bool main_reconnectVmix()
 {
   vmix_isConnected = false;
-  conn_NextVmixResponseCheck = 0;
-  conn_NextKeepAliveCheck = 0;
   currentTallyState = TALLY_NONE;
   vmix_renderTallyScreen(settings.getVmixTally());
 
@@ -220,17 +220,13 @@ void loop()
 
   // server.handleClient();
 
-  main_checkBatteryLevel(timestamp);
-  main_checkOrientation(timestamp);
-  main_checkScreenRefresh(timestamp);
-
-  if (main_handleButtons(timestamp))
+  for (std::vector<LoopEvent>::iterator it = loopEvents.begin(); it != loopEvents.end(); ++it)
   {
-    return;
+    if (!(it->execute(timestamp)))
+    {
+      return;
+    }
   }
-
-  main_pollVmix(timestamp);
-  main_pollKeepAlive(timestamp);
 }
 
 void main_restart()
@@ -262,41 +258,36 @@ void main_updateTally(unsigned short tally)
   vmix_refreshTally();
 }
 
-void main_checkBatteryLevel(unsigned long timestamp)
+bool main_checkIsCharging(unsigned long timestamp)
 {
-  bool performChargingCheck = timestamp > m5_NextChargingCheck;
-  if (performChargingCheck)
-  {
-    m5_NextChargingCheck = timestamp + M5_CHARGING_MS;
-    isCharging = battery.isCharging();
-  }
-  bool performBatteryLevelCheck = timestamp > m5_NextBatteryLevelCheck;
-  if (performBatteryLevelCheck)
-  {
-    m5_NextBatteryLevelCheck = timestamp + M5_BATTERYLEVEL_MS;
-    currentBatteryLevel = battery.getBatteryLevel();
+  isCharging = battery.isCharging();
 
-    // TEMPORARY
-    if (saveUptimeInfo)
-    {
-      settingsMgr.saveUptimeInfo(millis(), currentBatteryLevel);
-    }
-  }
+  return true;
 }
 
-void main_checkOrientation(unsigned long timestamp)
+bool main_checkBatteryLevel(unsigned long timestamp)
 {
-  bool performOrientationCheck = timestamp > app_NextOrientationCheck;
-  if (performOrientationCheck)
-  {
-    app_NextOrientationCheck = timestamp + APP_ORIENTATION_MS;
-    unsigned int newRotation = orientationManager.checkRotationChange();
+  currentBatteryLevel = battery.getBatteryLevel();
 
-    if (newRotation != -1)
-    {
-      main_updateRotation(newRotation);
-    }
+  // TEMPORARY
+  if (saveUptimeInfo)
+  {
+    settingsMgr.saveUptimeInfo(millis(), currentBatteryLevel);
   }
+
+  return true;
+}
+
+bool main_checkOrientation(unsigned long timestamp)
+{
+  unsigned int newRotation = orientationManager.checkRotationChange();
+
+  if (newRotation != -1)
+  {
+    main_updateRotation(newRotation);
+  }
+
+  return true;
 }
 
 void main_updateOrientation(byte newOrientation)
@@ -326,21 +317,16 @@ void main_updateRotation(byte newRotation)
   }
 }
 
-void main_checkScreenRefresh(unsigned long timestamp)
+bool main_checkScreenRefresh(unsigned long timestamp)
 {
   // TODO draw overlays like battery indicator
-  bool performScreenRefresh = timestamp > app_NextScreenRefreshCheck;
-  if (performScreenRefresh)
-  {
-    app_NextScreenRefreshCheck = timestamp + APP_SCREENREFRESH_MS;
-    main_renderScreen();
-  }
+  main_renderScreen();
+  
+  return true;
 }
 
 bool main_handleButtons(unsigned long timestamp)
 {
-  bool breakLoop = false;
-
   btnM5.update();
   btnSide.update();
 
@@ -397,7 +383,7 @@ bool main_handleButtons(unsigned long timestamp)
       {
         Serial.println("Settings swapped!");
         main_restart();
-        breakLoop = true;
+        return false;
       }
     }
   }
@@ -406,13 +392,13 @@ bool main_handleButtons(unsigned long timestamp)
     if (btnM5.isLongClick())
     {
       main_restart();
-      breakLoop = true;
+      return false;
     }
     else if (btnSide.isLongClick())
     {
       settings_swap();
       main_restart();
-      breakLoop = true;
+      return false;
     }
     // else if (btnSide.isLongClick())
     // {
@@ -422,11 +408,11 @@ bool main_handleButtons(unsigned long timestamp)
     //   settings_clear();
     //   settings_load();
     //   main_restart();
-    //   breakLoop = true;
+    //   return false;
     // }
   }
 
-  return breakLoop;
+  return true;
 }
 
 void main_setScreenColors(unsigned short foregroundColor, unsigned short backgroundColor)
@@ -438,7 +424,7 @@ void main_setScreenColors(unsigned short foregroundColor, unsigned short backgro
 
 void main_cycleBacklight(unsigned long timestamp)
 {
-  app_NextScreenRefreshCheck = timestamp + APP_BRIGHTNESS_TIMEOUT_MS;
+  screenRefreshCheck.setNextExecute(timestamp + APP_BRIGHTNESS_TIMEOUT_MS);
 
   char *brightnessString = new char[4];
   M5.Lcd.setTextSize(1);
@@ -469,51 +455,45 @@ void main_cycleBacklight(unsigned long timestamp)
   }
 }
 
-void main_pollVmix(unsigned long timestamp)
+bool main_pollVmix(unsigned long timestamp)
 {
   if (vmix_isConnected)
   {
-    bool performVmixResponseCheck = timestamp > conn_NextVmixResponseCheck;
-    if (performVmixResponseCheck)
-    {
-      conn_NextVmixResponseCheck = timestamp + VMIX_RESPONSE_MS;
-      vmix_checkForResponses(settings.getVmixTally());
-    }
+    vmix_checkForResponses(settings.getVmixTally());
   }
+
+  return true;
 }
 
-void main_pollKeepAlive(unsigned long timestamp)
+bool main_pollKeepAlive(unsigned long timestamp)
 {
   if ((!wifi_isConnected && !vmix_isConnected) || currentScreen == SCREEN_ERROR)
   {
-    return;
+    return true;
   }
 
-  bool performKeepAliveCheck = timestamp > conn_NextKeepAliveCheck;
-  if (performKeepAliveCheck)
+  if (!wifi_isAlive())
   {
-    conn_NextKeepAliveCheck = timestamp + VMIX_KEEPALIVE_MS;
-    if (!wifi_isAlive())
+    Serial.println("Disconnected from wifi, reconnecting...");
+    if (!main_reconnectWifi())
     {
-      Serial.println("Disconnected from wifi, reconnecting...");
-      if (!main_reconnectWifi())
-      {
-        main_showErrorScreen("Could not reconnect to wifi!");
-        return;
-      }
-    }
-
-    if (!vmix_isAlive())
-    {
-      Serial.println("Disconnected from vMix, reconnecting...");
-      conn_Reconnections++;
-      if (!main_reconnectVmix())
-      {
-        main_showErrorScreen("Could not reconnect to vMix!");
-        return;
-      }
+      main_showErrorScreen("Could not reconnect to wifi!");
+      return false;
     }
   }
+
+  if (!vmix_isAlive())
+  {
+    Serial.println("Disconnected from vMix, reconnecting...");
+    conn_Reconnections++;
+    if (!main_reconnectVmix())
+    {
+      main_showErrorScreen("Could not reconnect to vMix!");
+      return false;
+    }
+  }
+
+  return true;
 }
 
 void main_renderScreen()

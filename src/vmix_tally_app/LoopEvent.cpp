@@ -2,7 +2,7 @@
 
 struct LoopEvent::Impl
 {
-    Impl(unsigned int intervalMs, loopEventHandler handler) : _intervalMs(intervalMs), _handler(handler)
+    Impl(LoopEventHandler handler, unsigned int intervalMs) : _handler(handler), _intervalMs(intervalMs)
     {
     }
     ~Impl()
@@ -14,10 +14,10 @@ struct LoopEvent::Impl
 
     unsigned int _intervalMs;
     unsigned long _nextExecution = 0;
-    loopEventHandler _handler;
+    LoopEventHandler _handler;
 };
 
-LoopEvent::LoopEvent(unsigned int intervalMs, loopEventHandler handler) : _pimpl(new Impl(intervalMs, handler))
+LoopEvent::LoopEvent(LoopEventHandler handler, unsigned int intervalMs) : _pimpl(new Impl(handler, intervalMs))
 {
 }
 
@@ -26,9 +26,15 @@ LoopEvent::~LoopEvent()
     _pimpl->~Impl();
 }
 
-bool LoopEvent::execute(unsigned int timestamp)
+void LoopEvent::setNextExecute(unsigned long nextExecution)
 {
-    if (timestamp > _pimpl->_nextExecution){
+    _pimpl->_nextExecution = nextExecution;
+}
+
+bool LoopEvent::execute(unsigned long timestamp)
+{
+    if (_pimpl->_intervalMs == 0 || timestamp > _pimpl->_nextExecution)
+    {
         _pimpl->_nextExecution = timestamp + _pimpl->_intervalMs;
         return _pimpl->_handler(timestamp);
     }

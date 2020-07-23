@@ -1,15 +1,16 @@
 #ifndef LOOPEVENT_H
 #define LOOPEVENT_H
 
-typedef bool (*loopEventHandler)(unsigned int timestamp);
+typedef bool (*LoopEventHandler)(unsigned long timestamp);
 
 class LoopEvent
 {
 public:
-    LoopEvent(unsigned int intervalMs, loopEventHandler handler);
+    LoopEvent(LoopEventHandler handler, unsigned int intervalMs);
     ~LoopEvent();
 
-    bool execute(unsigned int timestamp);
+    void setNextExecute(unsigned long nextExecution);
+    bool execute(unsigned long timestamp);
 
 private:
     class Impl;

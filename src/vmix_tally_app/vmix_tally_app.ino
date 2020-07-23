@@ -5,11 +5,13 @@
 #include <WiFi.h>
 #include <SPIFFS.h>
 #include <PinButton.h>
+#include <vector>
 
 #include "AppSettings.h"
 #include "AppSettingsManager.h"
 #include "BatteryManager.h"
 #include "OrientationManager.h"
+#include "LoopEvent.h"
 
 #define LED_BUILTIN 10
 
@@ -31,13 +33,13 @@
 #define TALLY_NR_MAX 30
 
 #define VMIX_CONN_RETRIES 3
-#define VMIX_KEEPALIVE_MS 5000
-#define VMIX_RESPONSE_MS 100
-#define APP_ORIENTATION_MS 500
-#define APP_SCREENREFRESH_MS 10000
-#define M5_CHARGING_MS 5000
-#define M5_BATTERYLEVEL_MS 30000
-#define APP_BRIGHTNESS_TIMEOUT_MS 1000
+#define VMIX_KEEPALIVE_MS 5000u
+#define VMIX_RESPONSE_MS 100u
+#define APP_ORIENTATION_MS 500u
+#define APP_SCREENREFRESH_MS 10000u
+#define M5_CHARGING_MS 5000u
+#define M5_BATTERYLEVEL_MS 30000u
+#define APP_BRIGHTNESS_TIMEOUT_MS 1000u
 #define APP_ROTATION_THRESHOLD 0.8f
 #define FONT 1
 
