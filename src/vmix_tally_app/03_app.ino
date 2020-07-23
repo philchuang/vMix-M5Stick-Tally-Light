@@ -1,7 +1,8 @@
-// // intellisense support only, comment out before building
+// intellisense support only, comment out before building
 // #define ESP32
 // #define LED_BUILTIN 10
 // #define CLEAR_SETTINGS_ON_LOAD true
+// #define PREPARE_BATTERY_LOGGING false
 // #define TALLY_NONE ' '
 // #define TALLY_NR_MAX 30
 // #define SCREEN_START 0
@@ -22,6 +23,7 @@
 // #include <SPIFFS.h>
 // #include <WiFi.h>
 // #include <PinButton.h>
+// #include <vector.h>
 // #include "AppSettings.h"
 // #include "AppSettingsManager.h"
 // #include "BatteryManager.h"
@@ -62,6 +64,7 @@ unsigned long m5_NextBatteryLevelCheck = 0;
 unsigned short app_lastForegroundColor = WHITE;
 unsigned short app_lastBackgroundColor = BLACK;
 bool saveUptimeInfo = true;
+// std::vector<> loopEvents;
 
 void setup()
 {
@@ -120,6 +123,13 @@ void main_begin()
   conn_Reconnections = 0;
   isCharging = false;
   currentBatteryLevel = 0;
+
+//   main_setupLoopListeners();
+// }
+
+// void main_setupLoopListeners()
+// {
+
 }
 
 void main_splash()
