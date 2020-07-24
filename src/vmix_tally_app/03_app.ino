@@ -90,21 +90,22 @@ void setup()
   main_splash();
   settings_load();
 
-  // TEMPORARY
-  if (PREPARE_BATTERY_LOGGING)
+  if (LOG_BATTERY)
   {
-    settingsMgr.saveUptimeInfo(0, 0);
-    saveUptimeInfo = false;
+    if (PREPARE_BATTERY_LOGGING)
+    {
+      settingsMgr.saveUptimeInfo(0, 0);
+      saveUptimeInfo = false;
+    }
+    else
+    {
+      delay(10000);
+    }
+    if (settingsMgr.getLastUptime() != 0)
+    {
+      saveUptimeInfo = false;
+    }
   }
-  else
-  {
-    delay(10000);
-  }
-  if (settingsMgr.getLastUptime() != 0)
-  {
-    saveUptimeInfo = false;
-  }
-
   main_start();
 
   // server.on("/", handle_root);
@@ -269,8 +270,7 @@ bool main_checkBatteryLevel(unsigned long timestamp)
 {
   currentBatteryLevel = battery.getBatteryLevel();
 
-  // TEMPORARY
-  if (saveUptimeInfo)
+  if (LOG_BATTERY && saveUptimeInfo)
   {
     settingsMgr.saveUptimeInfo(millis(), currentBatteryLevel);
   }
@@ -321,12 +321,14 @@ bool main_checkScreenRefresh(unsigned long timestamp)
 {
   // TODO draw overlays like battery indicator
   main_renderScreen();
-  
+
   return true;
 }
 
 bool main_handleButtons(unsigned long timestamp)
 {
+  // TODO create classes for each screen that handles showing, rendering, and input handling
+
   btnM5.update();
   btnSide.update();
 

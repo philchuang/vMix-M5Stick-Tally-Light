@@ -16,6 +16,7 @@
 #define LED_BUILTIN 10
 
 #define CLEAR_SETTINGS_ON_LOAD false
+#define LOG_BATTERY false
 #define PREPARE_BATTERY_LOGGING false
 #define HIGH_VIZ_MODE false
 

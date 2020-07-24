@@ -75,7 +75,6 @@ Using the IDE, compile and upload to your M5StickC.
 * [ ]  Use Preferences.h instead of EEPROM.h for settings (maybe keep EEPROM for last used settings & tracking)
 * [ ]  Battery indicator on all screens
 * [ ]  Detect and indicate when battery is fully charged
-* [ ]  Decrease battery usage / confirm minimum working voltage
 * [ ]  Battery logging
 * [ ]  Restore last used settings on boot (instead of just #1) OR ability to select settings on boot
 * [ ]  Continued cleanup and refactor of logic - event-driven model
@@ -83,6 +82,16 @@ Using the IDE, compile and upload to your M5StickC.
 * [ ]  Access Point mode when not connected to a WiFi network
 * [ ]  Webserver for easy configuration
 * [ ]  Screens revamp:
+  * [ ]  Splash screen
+    * [ ]  Delay then switch to Connection screen
+  * [ ]  Connection screen
+    * [ ]  Connect to wifi, then vmix
+    * [ ]  If successful, switch to Tally screen
+    * [ ]  else, switch to Connection Error screen
+  * [ ]  Connection Error screen
+    * [ ]  Display WiFI & vMix settings
+    * [ ]  M5 short-press to switch to Connection screen
+    * [ ]  Side short-press to cycle connection settings
   * [ ]  Tally screen
     * [ ]  show status in landscape, number in portrait
     * [ ]  M5 short-press to switch to Settings screen
