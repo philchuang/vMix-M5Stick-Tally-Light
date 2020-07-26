@@ -88,10 +88,10 @@ Using the IDE, compile and upload to your M5StickC.
     * [ ]  Connect to wifi, then vmix
     * [ ]  If successful, switch to Tally screen
     * [ ]  else, switch to Connection Error screen
-  * [ ]  Connection Error screen
-    * [ ]  Display WiFI & vMix settings
-    * [ ]  M5 short-press to switch to Connection screen
-    * [ ]  Side short-press to cycle connection settings
+    * [ ]  Connection Error screen
+      * [ ]  Display WiFI & vMix settings
+      * [ ]  M5 short-press to switch to Connection screen
+      * [ ]  Side short-press to cycle connection settings
   * [ ]  Tally screen
     * [ ]  show status in landscape, number in portrait
     * [ ]  M5 short-press to switch to Settings screen

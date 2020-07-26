@@ -14,8 +14,14 @@ public:
 
     void begin();
     
-    AppSettings getSettings();
-    void setSettings(AppSettings settings);
+    AppSettings* getSettings();
+    void setSettings(AppSettings &settings);
+
+    bool getIsWifiConnected();
+    void setIsWifiConnected(bool connected);
+
+    bool getIsVmixConnected();
+    void setIsVmixConnected(bool connected);
     
     char getTallyState();
     void setTallyState(char state);

@@ -43,8 +43,8 @@
 // bool isCharging;
 // intellisense support only, comment out before building
 
-BatteryManager battery = BatteryManager();
-OrientationManager orientationManager = OrientationManager(APP_ROTATION_THRESHOLD);
+BatteryManager battery;
+OrientationManager orientationManager(APP_ROTATION_THRESHOLD);
 
 PinButton btnM5 = PinButton(37);
 PinButton btnSide = PinButton(39);
@@ -73,7 +73,15 @@ void setup()
   Serial.begin(115200);
   SPIFFS.begin();
 
-  battery.setBacklight(60);
+  battery.begin();
+  if (HIGH_VIZ_MODE)
+  {
+    battery.setBacklight(100);
+  }
+  else
+  {
+    battery.setBacklight(60);
+  }
   settingsMgr.begin();
   orientationManager.begin();
 

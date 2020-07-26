@@ -16,7 +16,9 @@ struct AppState::Impl
     {
     }
 
-    AppSettings _appSettings;
+    AppSettings *_appSettings;
+    bool _isWifiConnected;
+    bool _isVmixConnected;
     char _tallyState;
     unsigned int _numReconnections;
     bool _isCharging;
@@ -35,14 +37,34 @@ void AppState::begin()
     // TODO implement
 }
 
-AppSettings AppState::getSettings()
+AppSettings *AppState::getSettings()
 {
     return _pimpl->_appSettings;
 }
 
-void AppState::setSettings(AppSettings settings)
+void AppState::setSettings(AppSettings &settings)
 {
-    _pimpl->_appSettings = settings;
+    _pimpl->_appSettings = &settings;
+}
+
+bool AppState::getIsWifiConnected()
+{
+    return _pimpl->_isWifiConnected;
+}
+
+void AppState::setIsWifiConnected(bool connected)
+{
+    _pimpl->_isWifiConnected = connected;
+}
+
+bool AppState::getIsVmixConnected()
+{
+    return _pimpl->_isVmixConnected;
+}
+
+void AppState::setIsVmixConnected(bool connected)
+{
+    _pimpl->_isVmixConnected = connected;
 }
 
 char AppState::getTallyState()

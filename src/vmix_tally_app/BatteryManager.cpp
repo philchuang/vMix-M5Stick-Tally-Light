@@ -15,13 +15,14 @@ struct BatteryManager::Impl
     unsigned int _backlight = MAX_BRIGHTNESS;
 };
 
-BatteryManager::BatteryManager()
-    : _pimpl(new Impl())
+BatteryManager::BatteryManager() : _pimpl(new Impl()) {}
+
+BatteryManager::~BatteryManager() = default;
+
+void BatteryManager::begin()
 {
     M5.Axp.begin();
 }
-
-BatteryManager::~BatteryManager() = default;
 
 unsigned int BatteryManager::cycleBacklight()
 {

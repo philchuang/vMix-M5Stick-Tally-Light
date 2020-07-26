@@ -15,6 +15,7 @@ class BatteryManager
 public:
     BatteryManager();
     ~BatteryManager();
+    void begin();
     double getBatteryLevel()
     {
         // https://forum.m5stack.com/topic/1361/ischarging-and-getBatteryManager/7
