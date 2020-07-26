@@ -4,8 +4,10 @@
 
 #include "AppState.h"
 #include <stdio.h>
+#include <map>
 #include <string.h>
 #include <M5StickC.h>
+#include "Screen.h"
 
 struct ScreenManager::Impl
 {
@@ -19,6 +21,7 @@ struct ScreenManager::Impl
 
     AppState _state;
     unsigned int _currentScreen;
+    std::map<unsigned int, std::unique_ptr<Screen>> _screenMap;
 };
 
 ScreenManager::ScreenManager(AppState state)
@@ -30,15 +33,21 @@ ScreenManager::~ScreenManager() = default;
 
 void ScreenManager::begin()
 {
-    // TODO implement
+    // TODO anything go here?
 }
 
-unsigned int ScreenManager::getCurrentScreen()
+void ScreenManager::add(Screen* screen)
+{
+    screen->setAppState(_pimpl->_state);
+    _pimpl->_screenMap[screen->getId()] = std::unique_ptr<Screen> (screen);
+}
+
+unsigned int ScreenManager::getCurrent()
 {
     return _pimpl->_currentScreen;
 }
 
-void ScreenManager::setCurrentScreen(unsigned int screen)
+void ScreenManager::show(unsigned int screen)
 {
     _pimpl->_currentScreen = screen;
     // TODO render screen

@@ -12,6 +12,7 @@
         "istream": "cpp",
         "chrono": "cpp",
         "tuple": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "map": "cpp"
     }
 }

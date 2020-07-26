@@ -13,9 +13,9 @@ public:
     ~ScreenManager();
 
     void begin();
-    
-    unsigned int getCurrentScreen();
-    void setCurrentScreen(unsigned int screen);
+    void add(Screen* screen);
+    unsigned int getCurrent();
+    void show(unsigned int screen);
 
 private:
     class Impl;
