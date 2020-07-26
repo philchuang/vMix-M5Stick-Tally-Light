@@ -20,11 +20,13 @@
 #define PREPARE_BATTERY_LOGGING false
 #define HIGH_VIZ_MODE false
 
-#define SCREEN_START    0
-#define SCREEN_SETTINGS 1
-#define SCREEN_TALLY    2
-#define SCREEN_TALLY_NR 3
-#define SCREEN_ERROR    255
+#define SCREEN_START    1
+#define SCREEN_CONN     2
+#define SCREEN_TALLY    3
+#define SCREEN_TALLY_NR 6 // temporary
+#define SCREEN_SETTINGS 5
+#define SCREEN_ERROR    0
+#define SCREEN_COUNT    7 // highest number + 1
 
 #define TALLY_NONE '?'
 #define TALLY_SAFE '0'

@@ -2,16 +2,14 @@
 
 #include "ScreenManager.h"
 
-#include "AppState.h"
 #include <stdio.h>
-#include <map>
-#include <string.h>
-#include <M5StickC.h>
+#include <vector>
+#include "AppState.h"
 #include "Screen.h"
 
 struct ScreenManager::Impl
 {
-    Impl(AppState state) : _state(state)
+    Impl(AppState &state, unsigned int maxScreens) : _state(&state), _screens(maxScreens)
     {
     }
 
@@ -19,36 +17,50 @@ struct ScreenManager::Impl
     {
     }
 
-    AppState _state;
+    AppState *_state;
     unsigned int _currentScreen;
-    std::map<unsigned int, std::unique_ptr<Screen>> _screenMap;
+    std::vector<Screen*> _screens;
 };
 
-ScreenManager::ScreenManager(AppState state)
-    : _pimpl(new Impl(state))
+ScreenManager::ScreenManager(AppState &state, unsigned int maxScreens)
+    : _pimpl(new Impl(state, maxScreens))
 {
 }
 
-ScreenManager::~ScreenManager() = default;
+ScreenManager::~ScreenManager()
+{
+    _pimpl->_screens.clear();
+}
 
 void ScreenManager::begin()
 {
     // TODO anything go here?
 }
 
-void ScreenManager::add(Screen* screen)
+void ScreenManager::add(Screen &screen)
 {
-    screen->setAppState(_pimpl->_state);
-    _pimpl->_screenMap[screen->getId()] = std::unique_ptr<Screen> (screen);
+    _pimpl->_screens[screen.getId()] = &screen;
 }
 
-unsigned int ScreenManager::getCurrent()
+Screen* ScreenManager::getCurrent()
 {
-    return _pimpl->_currentScreen;
+    return _pimpl->_screens[_pimpl->_currentScreen];
 }
 
-void ScreenManager::show(unsigned int screen)
+void ScreenManager::show(unsigned int screenId)
 {
-    _pimpl->_currentScreen = screen;
-    // TODO render screen
+    _pimpl->_currentScreen = screenId;
+    this->refresh();
+}
+
+void ScreenManager::refresh()
+{
+    auto screen = this->getCurrent();
+    screen->refresh();
+}
+
+void ScreenManager::handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn)
+{
+    auto screen = this->getCurrent();
+    screen->handleInput(timestamp, m5Btn, sideBtn);
 }

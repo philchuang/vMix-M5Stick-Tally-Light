@@ -7,20 +7,16 @@
 class Screen
 {
 public:
-    Screen();
+    Screen(AppState &state) : _appState(state);
     ~Screen();
 
-    void setAppState(AppState state)
-    {
-        this->_appState = state;
-    }
     virtual unsigned int getId() = 0;
     virtual void show() = 0;
     virtual void refresh() = 0;
     virtual void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn) = 0;
 
-private:
-    AppState _appState;
+protected:
+    AppState *_appState;
 };
 
 #endif
