@@ -221,7 +221,7 @@ void loop()
 
   // server.handleClient();
 
-  for (std::vector<LoopEvent>::iterator it = loopEvents.begin(); it != loopEvents.end(); ++it)
+  for (auto it = loopEvents.begin(); it != loopEvents.end(); ++it)
   {
     if (!(it->execute(timestamp)))
     {
