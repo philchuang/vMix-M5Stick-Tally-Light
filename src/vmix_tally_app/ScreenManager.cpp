@@ -19,7 +19,7 @@ struct ScreenManager::Impl
 
     AppState *_state;
     unsigned int _currentScreen;
-    std::vector<Screen*> _screens;
+    std::vector<Screen *> _screens;
 };
 
 ScreenManager::ScreenManager(AppState &state, unsigned int maxScreens)
@@ -29,6 +29,10 @@ ScreenManager::ScreenManager(AppState &state, unsigned int maxScreens)
 
 ScreenManager::~ScreenManager()
 {
+    for (auto it = _pimpl->_screens.begin(); it != _pimpl->_screens.end(); ++it)
+    {
+        // it->unregister();
+    }
     _pimpl->_screens.clear();
 }
 
@@ -39,10 +43,12 @@ void ScreenManager::begin()
 
 void ScreenManager::add(Screen &screen)
 {
+    // screen->register(&this);
+    _pimpl->_screens[screen.getId()] = &screen;
     _pimpl->_screens[screen.getId()] = &screen;
 }
 
-Screen* ScreenManager::getCurrent()
+Screen *ScreenManager::getCurrent()
 {
     return _pimpl->_screens[_pimpl->_currentScreen];
 }

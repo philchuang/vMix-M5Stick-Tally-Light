@@ -17,6 +17,7 @@ public:
 
 protected:
     AppState *_appState;
+    ScreenManager *_mgr;
 };
 
 #endif
