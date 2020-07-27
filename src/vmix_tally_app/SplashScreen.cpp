@@ -1,22 +1,24 @@
-#ifndef CONNSPLASH_H
-#define CONNSPLASH_H
+#define SCREEN_SPLASH 1
+
+#ifndef SPLASHSCREEN_H
+#define SPLASHSCREEN_H
 
 #define ESP32
 
-#define SCREEN_SPLASH 1
+#include "Screen.h"
 
 #include <M5StickC.h>
 #include <PinButton.h>
+#include "OrientationManager.h"
 #include "AppState.h"
-#include "Screen.h"
 
 class SplashScreen : public Screen
 {
 public:
-    SplashScreen() : Screen() {}
+    SplashScreen(AppState &state) : Screen(state) {}
     ~SplashScreen();
 
-    unsigned int Screen::getId() { return SCREEN_SPLASH; }
+    unsigned int getId() { return SCREEN_SPLASH; }
 
     void show()
     {
@@ -26,7 +28,8 @@ public:
 
     void refresh()
     {
-        // main_updateOrientation(0); // TODO fire orientation change event that ScreenManager will listen for
+        if (this->orientationChangeHandler) this->orientationChangeHandler(LANDSCAPE);
+        if (this->colorChangeHandler) this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setTextDatum(MC_DATUM);
         M5.Lcd.drawString("vMix M5Stick-C Tally", 80, 15, 2);
@@ -36,7 +39,9 @@ public:
 
     void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn)
     {
+        // does nothing
     }
 };
+
 
 #endif

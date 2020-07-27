@@ -1,7 +1,7 @@
+#define SCREEN_CONN 2
+
 #ifndef CONNSCREEN_H
 #define CONNSCREEN_H
-
-#define SCREEN_CONN 2
 
 #define NUM_WAITS 10
 #define WAIT_INTERVAL_MS 1000
@@ -17,24 +17,33 @@
 
 #include <M5StickC.h>
 #include <PinButton.h>
+#include "OrientationManager.h"
 #include "AppState.h"
 #include "WifiManager.h"
+#include "VmixManager.h"
 
 // TODO split into wifi connection screen and vmix connection screen
 
 class ConnectingScreen : public Screen
 {
 public:
-    ConnectingScreen(AppState &appState) : Screen(appState), _wifiMgr(appState) {}
+    ConnectingScreen(AppState &appState) : Screen(appState)
+    {
+        auto wmgr = WifiManager(appState);
+        this->_wifiMgr = &wmgr;
+        auto vmgr = VmixManager(appState);
+        this->_vmixMgr = &vmgr;
+    }
     ~ConnectingScreen();
 
-    unsigned int Screen::getId() { return SCREEN_CONN; }
+    unsigned int getId() { return SCREEN_CONN; }
 
     void show()
     {
         if (!reconnectWifi())
         {
-            // main_showErrorScreen("Could not connect to wifi!"); // TODO fire show error screen event that ScreenManager will listen for
+            // TODO connection error screen
+            // if (this->showErrorScreenHandler)this->showErrorScreenHandler("Could not connect to wifi!");
             this->_appState->setIsVmixConnected(false);
             return;
         }
@@ -69,11 +78,11 @@ public:
         Serial.printf("Pass: %s\n", passphrase);
         Serial.printf("Connecting to %s with %s...", ssid, passphrase);
 
+        if (this->orientationChangeHandler) this->orientationChangeHandler(LANDSCAPE);
+        if (this->colorChangeHandler) this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setCursor(0, 0);
-        // main_updateOrientation(0); // TODO fire orientation change event that ScreenManager will listen for
         M5.Lcd.setTextSize(1);
-        // main_setScreenColors(WHITE, BLACK); // TODO color change event that ScreenManager will listen for
         M5.Lcd.print("Connecting to WiFi...");
 
         this->_wifiMgr->connect(ssid, passphrase);
@@ -101,13 +110,11 @@ public:
         }
 
         Serial.printf("Unable to connect to %s!\n", ssid);
-        // main_updateOrientation(0); // TODO fire orientation change event that ScreenManager will listen for
         M5.Lcd.printf("Unable to connect to %s!\n", ssid);
 
         return false;
     }
 
-    // TODO refactor into wifi class
     bool reconnectVmix()
     {
         this->_appState->setIsVmixConnected(false);
@@ -139,11 +146,11 @@ public:
     // TODO refactor into VmixClient
     bool vmix_connect(const char *addr, unsigned short port)
     {
+        if (this->orientationChangeHandler) this->orientationChangeHandler(LANDSCAPE);
+        if (this->colorChangeHandler) this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setCursor(0, 0);
-        // main_updateOrientation(0); // TODO fire orientation change event that screen manager catches
         M5.Lcd.setTextSize(1);
-        // main_setScreenColors(WHITE, BLACK); // TODO fire color change event that screen manager catches
         Serial.println("Connecting to vMix...");
         M5.Lcd.println("Connecting to vMix...");
 
@@ -183,6 +190,7 @@ public:
 
 private:
     WifiManager *_wifiMgr;
+    VmixManager *_vmixMgr;
 };
 
 #endif

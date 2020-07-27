@@ -2,7 +2,7 @@
 
 struct LoopEvent::Impl
 {
-    Impl(LoopEventHandler handler, unsigned int intervalMs) : _handler(handler), _intervalMs(intervalMs)
+    Impl(LoopEventHandler &handler, unsigned int intervalMs) : _handler(handler), _intervalMs(intervalMs)
     {
     }
     ~Impl()
@@ -17,7 +17,7 @@ struct LoopEvent::Impl
     LoopEventHandler _handler;
 };
 
-LoopEvent::LoopEvent(LoopEventHandler handler, unsigned int intervalMs) : _pimpl(new Impl(handler, intervalMs))
+LoopEvent::LoopEvent(LoopEventHandler &handler, unsigned int intervalMs) : _pimpl(new Impl(handler, intervalMs))
 {
 }
 

@@ -1,3 +1,6 @@
+#define LANDSCAPE 0
+#define PORTRAIT  1
+
 #ifndef OrientationManager_h
 #define OrientationManager_h
 
