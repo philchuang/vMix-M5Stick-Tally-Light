@@ -14,9 +14,12 @@ public:
     ~VmixManager();
 
     void begin();
-    void connect(const char *addr, unsigned short port);
+    bool connect(const char *addr, unsigned short port);
     bool isAlive();
     void disconnect();
+
+    void subscribeTally();
+    void receive();
 
 private:
     class Impl;

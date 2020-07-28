@@ -154,37 +154,29 @@ public:
         Serial.println("Connecting to vMix...");
         M5.Lcd.println("Connecting to vMix...");
 
-        if (vmix_client.connected())
+        auto addr = this->_appState->getSettings()->getVmixAddress();
+        auto port = this->_appState->getSettings()->getVmixPort();
+
+        byte timeout = NUM_WAITS;
+        while (!this->_vmixMgr->connect(addr, port) && timeout > 0)
         {
-            vmix_client.stop();
+            delay(WAIT_INTERVAL_MS);
+            timeout--;
+            Serial.print(".");
+            M5.Lcd.print(".");
         }
+        Serial.println();
+        M5.Lcd.println();
 
-        byte retryAttempt = 0;
-        byte maxRetry = VMIX_CONN_RETRIES;
-        do
+        if (this->_vmixMgr->isAlive())
         {
-            if (!vmix_client.connect(addr, port))
-            {
-                if (retryAttempt == maxRetry)
-                {
-                    return false;
-                }
-
-                retryAttempt++;
-                Serial.printf("Retrying %d/%d...\n", retryAttempt, maxRetry);
-                M5.Lcd.printf("Retrying %d/%d...\n", retryAttempt, maxRetry);
-                delay(1000);
-
-                continue;
-            }
-
             Serial.println("Connection opened.");
             Serial.println("Subscribing to tally events...");
-            vmix_client.print(VMIX_API_SUBSCRIBE_TALLY);
+            this->_vmixMgr->subscribeTally();
 
             return true;
-        } while (true);
-
+        }
+        
         return false;
     }
 

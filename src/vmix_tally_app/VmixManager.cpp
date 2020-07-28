@@ -11,6 +11,7 @@
 #include "VmixManager.h"
 
 #include <M5StickC.h>
+#include <WiFi.h>
 #include "AppState.h"
 
 struct VmixManager::Impl
@@ -24,6 +25,7 @@ struct VmixManager::Impl
     }
 
     AppState *_state;
+    WiFiClient *_vmix_client;
 };
 
 VmixManager::VmixManager(AppState &state)
@@ -33,37 +35,40 @@ VmixManager::VmixManager(AppState &state)
 
 VmixManager::~VmixManager()
 {
+    _pimpl->_vmix_client = 0;
 }
 
 void VmixManager::begin()
 {
-    // TODO anything go here?
+    _pimpl->_vmix_client = &WiFiClient();
 }
 
-void VmixManager::connect(const char *ssid, const char *passphrase)
+bool VmixManager::connect(const char *addr, unsigned short port)
 {
-    // force a reconnection
-    if (Vmix.status() == WL_CONNECTED)
+    if (_pimpl->_vmix_client->connected())
     {
-        Vmix.disconnect();
-        delay(500);
+        _pimpl->_vmix_client->stop();
     }
 
-    Vmix.mode(Vmix_STA);
-    Vmix.begin(ssid, passphrase);
+    return _pimpl->_vmix_client->connect(addr, port);
 }
 
 bool VmixManager::isAlive()
 {
-    return Vmix.status() == WL_CONNECTED;
-}
-
-IPAddress VmixManager::localIP()
-{
-    return Vmix.localIP();
+    return _pimpl->_vmix_client->connected();
 }
 
 void VmixManager::disconnect()
 {
     Vmix.disconnect();
+}
+
+void VmixManager::sendSubscribeTally()
+{
+    vmix_client.print(VMIX_API_SUBSCRIBE_TALLY);
+}
+
+void VmixManager::receive()
+{
+    // TODO
 }
