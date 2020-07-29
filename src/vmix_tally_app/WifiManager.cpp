@@ -4,33 +4,27 @@
 
 #include <M5StickC.h>
 #include <WiFi.h>
-#include "AppState.h"
 
 struct WifiManager::Impl
 {
-    Impl(AppState &state) : _state(&state)
+    Impl()
     {
     }
 
     ~Impl()
     {
     }
-
-    AppState *_state;
 };
 
-WifiManager::WifiManager(AppState &state)
-    : _pimpl(new Impl(state))
+WifiManager::WifiManager() : _pimpl(new Impl())
 {
 }
 
-WifiManager::~WifiManager()
-{
-}
+WifiManager::~WifiManager() = default;
 
 void WifiManager::begin()
 {
-    // TODO anything go here?
+    // anything here?
 }
 
 void WifiManager::connect(const char *ssid, const char *passphrase)

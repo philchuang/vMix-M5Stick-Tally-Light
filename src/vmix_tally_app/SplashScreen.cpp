@@ -1,5 +1,3 @@
-#define SCREEN_SPLASH 1
-
 #ifndef SPLASHSCREEN_H
 #define SPLASHSCREEN_H
 
@@ -10,12 +8,12 @@
 #include <M5StickC.h>
 #include <PinButton.h>
 #include "OrientationManager.h"
-#include "AppState.h"
+#include "AppContext.h"
 
 class SplashScreen : public Screen
 {
 public:
-    SplashScreen(AppState &state) : Screen(state) {}
+    SplashScreen(AppContext &context) : Screen(context) {}
     ~SplashScreen();
 
     unsigned int getId() { return SCREEN_SPLASH; }

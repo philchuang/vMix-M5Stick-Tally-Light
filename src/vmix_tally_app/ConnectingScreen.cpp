@@ -1,15 +1,8 @@
-#define SCREEN_CONN 2
-
-#ifndef CONNSCREEN_H
-#define CONNSCREEN_H
+#ifndef CONNSCREEN_CPP
+#define CONNSCREEN_CPP
 
 #define NUM_WAITS 10
 #define WAIT_INTERVAL_MS 1000
-
-#define TALLY_NONE '?'
-#define TALLY_SAFE '0'
-#define TALLY_LIVE '1'
-#define TALLY_PRE '2'
 
 #define ESP32
 
@@ -18,23 +11,26 @@
 #include <M5StickC.h>
 #include <PinButton.h>
 #include "OrientationManager.h"
-#include "AppState.h"
+#include "AppContext.h"
 #include "WifiManager.h"
 #include "VmixManager.h"
 
-// TODO split into wifi connection screen and vmix connection screen
+// TODO split into wifi connection screen and vmix connection screen?
 
 class ConnectingScreen : public Screen
 {
 public:
-    ConnectingScreen(AppState &appState) : Screen(appState)
+    ConnectingScreen(AppContext &context) : Screen(context)
     {
-        auto wmgr = WifiManager(appState);
-        this->_wifiMgr = &wmgr;
-        auto vmgr = VmixManager(appState);
-        this->_vmixMgr = &vmgr;
+        this->_wifiMgr = _context->getWifiManager();
+        this->_vmixMgr = _context->getVmixManager();
     }
-    ~ConnectingScreen();
+
+    ~ConnectingScreen()
+    {
+        this->_wifiMgr = 0;
+        this->_vmixMgr = 0;
+    }
 
     unsigned int getId() { return SCREEN_CONN; }
 
@@ -44,32 +40,36 @@ public:
         {
             // TODO connection error screen
             // if (this->showErrorScreenHandler)this->showErrorScreenHandler("Could not connect to wifi!");
-            this->_appState->setIsVmixConnected(false);
             return;
         }
 
         if (!reconnectVmix())
         {
-            main_showErrorScreen("Could not connect to vMix!");
+            // TODO connection error screen
+            // main_showErrorScreen("Could not connect to vMix!");
             return;
         }
 
-        vmix_showTallyScreen(settings.getVmixTally());
+        if (this->screenChangeHandler != 0)
+            this->screenChangeHandler(SCREEN_TALLY);
     }
 
     void refresh()
     {
+        // does nothing
     }
 
     void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn)
     {
+        // does nothing
     }
 
     bool reconnectWifi()
     {
-        this->_appState->setIsWifiConnected(false);
+        this->_context->setIsWifiConnected(false);
+        this->_context->setIsVmixConnected(false);
 
-        auto settings = this->_appState->getSettings();
+        auto settings = this->_context->getSettings();
 
         const char *ssid = settings->getWifiSsid();
         const char *passphrase = settings->getWifiPassphrase();
@@ -78,8 +78,10 @@ public:
         Serial.printf("Pass: %s\n", passphrase);
         Serial.printf("Connecting to %s with %s...", ssid, passphrase);
 
-        if (this->orientationChangeHandler) this->orientationChangeHandler(LANDSCAPE);
-        if (this->colorChangeHandler) this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
+        if (this->orientationChangeHandler)
+            this->orientationChangeHandler(LANDSCAPE);
+        if (this->colorChangeHandler)
+            this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setCursor(0, 0);
         M5.Lcd.setTextSize(1);
@@ -100,7 +102,7 @@ public:
 
         if (this->_wifiMgr->isAlive())
         {
-            this->_appState->setIsWifiConnected(true);
+            this->_context->setIsWifiConnected(true);
 
             Serial.println("Connected!");
             M5.Lcd.println("Connected!");
@@ -117,13 +119,13 @@ public:
 
     bool reconnectVmix()
     {
-        this->_appState->setIsVmixConnected(false);
-        this->_appState->setTallyState(TALLY_NONE);
+        this->_context->setIsVmixConnected(false);
+        this->_context->setTallyState(TALLY_NONE);
         // vmix_renderTallyScreen(settings.getVmixTally()); // TODO fire screen change event that screen manager catches
 
-        auto settings = this->_appState->getSettings();
+        auto settings = this->_context->getSettings();
 
-        if (!this->_appState->getIsWifiConnected())
+        if (!this->_context->getIsWifiConnected())
         {
             if (!reconnectWifi())
             {
@@ -131,31 +133,18 @@ public:
             }
         }
 
-        if (!vmix_connect(settings->getVmixAddress(), settings->getVmixPort()))
-        {
-            // main_updateOrientation(0); // TODO fire orientation change event that screen manager catches
-            Serial.println("Unable to connect to vMix!");
-            M5.Lcd.println("Unable to connect to vMix!");
-            return false;
-        }
-
-        this->_appState->setIsVmixConnected(true);
-        return true;
-    }
-
-    // TODO refactor into VmixClient
-    bool vmix_connect(const char *addr, unsigned short port)
-    {
-        if (this->orientationChangeHandler) this->orientationChangeHandler(LANDSCAPE);
-        if (this->colorChangeHandler) this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
+        if (this->orientationChangeHandler)
+            this->orientationChangeHandler(LANDSCAPE);
+        if (this->colorChangeHandler)
+            this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setCursor(0, 0);
         M5.Lcd.setTextSize(1);
         Serial.println("Connecting to vMix...");
         M5.Lcd.println("Connecting to vMix...");
 
-        auto addr = this->_appState->getSettings()->getVmixAddress();
-        auto port = this->_appState->getSettings()->getVmixPort();
+        auto addr = this->_context->getSettings()->getVmixAddress();
+        auto port = this->_context->getSettings()->getVmixPort();
 
         byte timeout = NUM_WAITS;
         while (!this->_vmixMgr->connect(addr, port) && timeout > 0)
@@ -168,16 +157,20 @@ public:
         Serial.println();
         M5.Lcd.println();
 
-        if (this->_vmixMgr->isAlive())
+        if (!this->_vmixMgr->isAlive())
         {
-            Serial.println("Connection opened.");
-            Serial.println("Subscribing to tally events...");
-            this->_vmixMgr->subscribeTally();
-
-            return true;
+            Serial.println("Unable to connect to vMix!");
+            M5.Lcd.println("Unable to connect to vMix!");
+            return false;
         }
-        
-        return false;
+
+        this->_context->setIsVmixConnected(true);
+
+        Serial.println("Connection opened.");
+        Serial.println("Subscribing to tally events...");
+        this->_vmixMgr->sendSubscribeTally();
+
+        return true;
     }
 
 private:

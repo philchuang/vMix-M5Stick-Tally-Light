@@ -12,11 +12,10 @@
 
 #include <M5StickC.h>
 #include <WiFi.h>
-#include "AppState.h"
 
 struct VmixManager::Impl
 {
-    Impl(AppState &state) : _state(&state)
+    Impl()
     {
     }
 
@@ -24,12 +23,10 @@ struct VmixManager::Impl
     {
     }
 
-    AppState *_state;
     WiFiClient *_vmix_client;
 };
 
-VmixManager::VmixManager(AppState &state)
-    : _pimpl(new Impl(state))
+VmixManager::VmixManager() : _pimpl(new Impl())
 {
 }
 
@@ -40,7 +37,8 @@ VmixManager::~VmixManager()
 
 void VmixManager::begin()
 {
-    _pimpl->_vmix_client = &WiFiClient();
+    auto client = WiFiClient();
+    _pimpl->_vmix_client = &client;
 }
 
 bool VmixManager::connect(const char *addr, unsigned short port)
@@ -60,15 +58,15 @@ bool VmixManager::isAlive()
 
 void VmixManager::disconnect()
 {
-    Vmix.disconnect();
+    _pimpl->_vmix_client->stop();
 }
 
 void VmixManager::sendSubscribeTally()
 {
-    vmix_client.print(VMIX_API_SUBSCRIBE_TALLY);
+    _pimpl->_vmix_client->println(VMIX_API_SUBSCRIBE_TALLY);
 }
 
-void VmixManager::receive()
+void VmixManager::receiveInput()
 {
     // TODO
 }

@@ -5,13 +5,13 @@
 #define ScreenManager_h
 
 #include <PinButton.h>
-#include "AppState.h"
+#include "AppContext.h"
 #include "Screen.h"
 
 class ScreenManager
 {
 public:
-    ScreenManager(AppState &state, unsigned int maxScreens);
+    ScreenManager(AppContext &context, unsigned int maxScreens);
     ~ScreenManager();
 
     void begin();

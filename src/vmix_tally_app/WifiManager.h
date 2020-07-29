@@ -4,13 +4,12 @@
 #ifndef WifiManager_h
 #define WifiManager_h
 
-#include "AppState.h"
 #include <IPAddress.h>
 
 class WifiManager
 {
 public:
-    WifiManager(AppState &state);
+    WifiManager();
     ~WifiManager();
 
     void begin();

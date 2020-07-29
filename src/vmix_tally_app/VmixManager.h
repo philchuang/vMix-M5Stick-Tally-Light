@@ -5,12 +5,11 @@
 #define VmixManager_h
 
 #include <WiFi.h>
-#include "AppState.h"
 
 class VmixManager
 {
 public:
-    VmixManager(AppState &state);
+    VmixManager();
     ~VmixManager();
 
     void begin();
@@ -18,8 +17,8 @@ public:
     bool isAlive();
     void disconnect();
 
-    void subscribeTally();
-    void receive();
+    void sendSubscribeTally();
+    void receiveInput();
 
 private:
     class Impl;

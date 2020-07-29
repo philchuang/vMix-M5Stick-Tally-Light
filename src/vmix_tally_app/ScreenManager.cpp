@@ -4,12 +4,12 @@
 
 #include <stdio.h>
 #include <vector>
-#include "AppState.h"
+#include "AppContext.h"
 #include "Screen.h"
 
 struct ScreenManager::Impl
 {
-    Impl(AppState &state, unsigned int maxScreens) : _state(&state), _screens(maxScreens)
+    Impl(AppContext &context, unsigned int maxScreens) : _context(&context), _screens(maxScreens)
     {
     }
 
@@ -17,13 +17,13 @@ struct ScreenManager::Impl
     {
     }
 
-    AppState *_state;
+    AppContext *_context;
     unsigned int _currentScreen;
     std::vector<Screen *> _screens;
 };
 
-ScreenManager::ScreenManager(AppState &state, unsigned int maxScreens)
-    : _pimpl(new Impl(state, maxScreens))
+ScreenManager::ScreenManager(AppContext &context, unsigned int maxScreens)
+    : _pimpl(new Impl(context, maxScreens))
 {
 }
 
