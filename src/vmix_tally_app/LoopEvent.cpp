@@ -7,7 +7,6 @@ struct LoopEvent::Impl
     }
     ~Impl()
     {
-        _handler = 0;
     }
 
     bool execute(unsigned int timestamp);

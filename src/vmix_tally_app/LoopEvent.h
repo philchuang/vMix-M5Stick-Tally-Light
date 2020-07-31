@@ -1,7 +1,7 @@
 #ifndef LOOPEVENT_H
 #define LOOPEVENT_H
 
-typedef bool (*LoopEventHandler)(unsigned long timestamp);
+typedef bool (&LoopEventHandler)(unsigned long timestamp);
 
 class LoopEvent
 {

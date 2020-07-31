@@ -60,7 +60,7 @@ unsigned short app_lastForegroundColor = WHITE;
 unsigned short app_lastBackgroundColor = BLACK;
 bool saveUptimeInfo = true;
 std::vector<LoopEvent> loopEvents;
-LoopEvent screenRefreshCheck(main_checkScreenRefresh, APP_SCREENREFRESH_MS);
+LoopEvent *screenRefreshCheck;
 
 void setup()
 {
@@ -128,6 +128,8 @@ void main_begin()
   conn_Reconnections = 0;
   isCharging = false;
   currentBatteryLevel = 0;
+  auto temp = LoopEvent(main_checkScreenRefresh, APP_SCREENREFRESH_MS);
+  screenRefreshCheck = &temp;
 
   main_setupLoopListeners();
 }
@@ -137,7 +139,7 @@ void main_setupLoopListeners()
   loopEvents.push_back(LoopEvent(main_checkIsCharging, M5_CHARGING_MS));
   loopEvents.push_back(LoopEvent(main_checkBatteryLevel, M5_BATTERYLEVEL_MS));
   loopEvents.push_back(LoopEvent(main_checkOrientation, APP_ORIENTATION_MS));
-  loopEvents.push_back(screenRefreshCheck);
+  loopEvents.push_back(*screenRefreshCheck);
   loopEvents.push_back(LoopEvent(main_handleButtons, 0));
   loopEvents.push_back(LoopEvent(main_pollVmix, VMIX_RESPONSE_MS));
   loopEvents.push_back(LoopEvent(main_pollKeepAlive, VMIX_KEEPALIVE_MS));
@@ -434,7 +436,7 @@ void main_setScreenColors(unsigned short foregroundColor, unsigned short backgro
 
 void main_cycleBacklight(unsigned long timestamp)
 {
-  screenRefreshCheck.setNextExecute(timestamp + APP_BRIGHTNESS_TIMEOUT_MS);
+  screenRefreshCheck->setNextExecute(timestamp + APP_BRIGHTNESS_TIMEOUT_MS);
 
   char *brightnessString = new char[4];
   M5.Lcd.setTextSize(1);
