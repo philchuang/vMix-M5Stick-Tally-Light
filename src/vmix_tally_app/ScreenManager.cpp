@@ -2,10 +2,12 @@
 
 #include "ScreenManager.h"
 
+#include <M5StickC.h>
 #include <stdio.h>
 #include <vector>
 #include "AppContext.h"
 #include "Screen.h"
+#include "ErrorScreen.cpp"
 
 struct ScreenManager::Impl
 {
@@ -20,6 +22,9 @@ struct ScreenManager::Impl
     AppContext *_context;
     unsigned int _currentScreen;
     std::vector<Screen *> _screens;
+
+    unsigned short _lastForegroundColor;
+    unsigned short _lastBackgroundColor;
 };
 
 ScreenManager::ScreenManager(AppContext &context, unsigned int maxScreens)
@@ -35,6 +40,8 @@ ScreenManager::~ScreenManager()
         (*it)->unregister();
     }
     _pimpl->_screens.clear();
+
+    this->orientationChangeHandler.~Signal();
 }
 
 void ScreenManager::begin()
@@ -44,9 +51,35 @@ void ScreenManager::begin()
 
 void ScreenManager::add(Screen &screen)
 {
-    // TODO register event handlers
-    screen.orientationChangeHandler = this->orientationChangeHandler;
+    MethodSlot<ScreenManager, unsigned short> orientationChangeListener(this, &ScreenManager::onOrientationChange);
+    screen.orientationChangeHandler.attach(orientationChangeListener);
+    MethodSlot<ScreenManager, Colors> colorChangeListener(this, &ScreenManager::onColorChange);
+    screen.colorChangeHandler.attach(colorChangeListener);
+    MethodSlot<ScreenManager, unsigned short> screenChangeListener(this, &ScreenManager::show);
+    screen.screenChangeHandler.attach(screenChangeListener);
+    MethodSlot<ScreenManager, const char *> showFatalErrorScreenListener(this, &ScreenManager::showFatalErrorScreen);
+    screen.showFatalErrorScreenHandler.attach(showFatalErrorScreenListener);
+    
     _pimpl->_screens[screen.getId()] = &screen;
+}
+
+void ScreenManager::onOrientationChange(unsigned short orientation)
+{
+    this->orientationChangeHandler.fire(orientation);
+}
+
+void ScreenManager::onColorChange(Colors colors)
+{
+    _pimpl->_lastForegroundColor = colors.foreColor;
+    _pimpl->_lastBackgroundColor = colors.backColor;
+    M5.Lcd.setTextColor(colors.foreColor, colors.backColor);
+}
+
+void ScreenManager::showFatalErrorScreen(const char *message)
+{
+    auto errorScreen = reinterpret_cast<ErrorScreen *>(_pimpl->_screens[SCREEN_ERROR]);
+    errorScreen->setMessage(message);
+    this->show(SCREEN_ERROR);
 }
 
 Screen *ScreenManager::getCurrent()
@@ -54,7 +87,7 @@ Screen *ScreenManager::getCurrent()
     return _pimpl->_screens[_pimpl->_currentScreen];
 }
 
-void ScreenManager::show(unsigned int screenId)
+void ScreenManager::show(unsigned short screenId)
 {
     _pimpl->_currentScreen = screenId;
     this->refresh();

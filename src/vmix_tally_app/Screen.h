@@ -1,16 +1,17 @@
+#define SCREEN_ERROR  0
 #define SCREEN_SPLASH 1
 #define SCREEN_CONN   2
 #define SCREEN_TALLY  3
 
-typedef void (*OrientationChangeHandler)(unsigned short orientation);
-typedef void (*ColorChangeHandler)(unsigned short foreColor, unsigned short backColor);
-typedef void (*ScreenChangeHandler)(unsigned short screenId);
-typedef void (*ShowErrorScreenHandler)(const char *message);
+#define LANDSCAPE 0
+#define PORTRAIT  1
 
 #ifndef SCREEN_H
 #define SCREEN_H
 
 #include <PinButton.h>
+#include <Callback.h>
+#include "Colors.cpp"
 #include "AppContext.h"
 
 class Screen
@@ -19,17 +20,17 @@ public:
     Screen(AppContext &context) : _context(&context) {}
     ~Screen();
 
-    OrientationChangeHandler orientationChangeHandler = 0;
-    ColorChangeHandler colorChangeHandler = 0;
-    ScreenChangeHandler screenChangeHandler = 0;
-    ShowErrorScreenHandler showFatalErrorScreenHandler = 0;
+    Signal<unsigned short> orientationChangeHandler;
+    Signal<Colors> colorChangeHandler;
+    Signal<unsigned short> screenChangeHandler;
+    Signal<const char *> showFatalErrorScreenHandler;
 
     void unregister()
     {
-        this->orientationChangeHandler = 0;
-        this->colorChangeHandler = 0;
-        this->screenChangeHandler = 0;
-        this->showFatalErrorScreenHandler = 0;
+        this->orientationChangeHandler.~Signal();
+        this->colorChangeHandler.~Signal();
+        this->screenChangeHandler.~Signal();
+        this->showFatalErrorScreenHandler.~Signal();
     }
 
     virtual unsigned int getId() = 0;

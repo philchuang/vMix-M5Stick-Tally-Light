@@ -7,7 +7,6 @@
 
 #include <M5StickC.h>
 #include <PinButton.h>
-#include "OrientationManager.h"
 #include "AppContext.h"
 
 class SplashScreen : public Screen
@@ -26,8 +25,8 @@ public:
 
     void refresh()
     {
-        if (this->orientationChangeHandler) this->orientationChangeHandler(LANDSCAPE);
-        if (this->colorChangeHandler) this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
+        this->orientationChangeHandler.fire(LANDSCAPE);
+        this->colorChangeHandler.fire(Colors(TFT_WHITE, TFT_BLACK));
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setTextDatum(MC_DATUM);
         M5.Lcd.drawString("vMix M5Stick-C Tally", 80, 15, 2);

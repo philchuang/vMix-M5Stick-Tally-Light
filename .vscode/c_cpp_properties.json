@@ -6,9 +6,7 @@
                 "${workspaceFolder}\\**",
                 "${env:USERPROFILE}\\Documents\\Arduino\\libraries\\**",
                 "${env:LOCALAPPDATA}\\Arduino15\\packages\\esp32\\tools\\**",
-                "${env:LOCALAPPDATA}\\Arduino15\\packages\\esp32\\hardware\\esp32\\1.0.4\\**",
-                "C:\\Users\\chubl\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\1.0.4\\**",
-                "C:\\Users\\chubl\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\**"
+                "${env:LOCALAPPDATA}\\Arduino15\\packages\\esp32\\hardware\\esp32\\1.0.4\\**"
             ],
             "forcedInclude": [],
             "intelliSenseMode": "msvc-x64"

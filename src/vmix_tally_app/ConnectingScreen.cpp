@@ -13,7 +13,6 @@
 
 #include <M5StickC.h>
 #include <PinButton.h>
-#include "OrientationManager.h"
 #include "AppContext.h"
 #include "WifiManager.h"
 #include "VmixManager.h"
@@ -35,90 +34,33 @@ public:
 
     unsigned int getId() { return SCREEN_CONN; }
 
-    void setOrientation(unsigned short orientation)
-    {
-        // does nothing, always landscape
-    }
-
     void show()
     {
         M5.Lcd.fillScreen(TFT_BLACK);
 
         if (!reconnectWifi())
         {
-            this->_errorMessage = WIFI_ERROR;
-            refresh();
+            this->showFatalErrorScreenHandler.fire(WIFI_ERROR);
             return;
         }
 
         if (!reconnectVmix())
         {
-            this->_errorMessage = VMIX_ERROR;
-            refresh();
+            this->showFatalErrorScreenHandler.fire(VMIX_ERROR);
             return;
         }
 
-        if (this->screenChangeHandler != 0)
-        {
-            this->screenChangeHandler(SCREEN_TALLY);
-        }
+        this->screenChangeHandler.fire(SCREEN_TALLY);
     }
 
     void refresh()
     {
-        if (this->_errorMessage != 0)
-        {
-            M5.Lcd.fillScreen(TFT_BLACK);
-
-            if (this->orientationChangeHandler)
-                this->orientationChangeHandler(LANDSCAPE);
-            if (this->colorChangeHandler)
-                this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
-
-            // display errormessage
-            M5.Lcd.setCursor(0, 0);
-            M5.Lcd.setTextSize(1);
-            M5.Lcd.println(this->_errorMessage);
-            
-            M5.Lcd.println();
-            
-            // display settings
-            auto settings = this->_context->getSettings();
-            auto settingsIdx = this->_context->getSettingsIdx();
-            auto numSettings = this->_context->getNumSettings();
-            M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx + 1, numSettings);
-            M5.Lcd.printf("-SSID: %s\n", settings->getWifiSsid());
-            M5.Lcd.printf("-IP: ");
-            M5.Lcd.println(this->_wifiMgr->localIP());
-            M5.Lcd.printf("-vMix: %s\n", settings->getVmixAddressWithPort());
-
-            M5.Lcd.println();
-
-            // display instructions
-            M5.Lcd.println("Press M5 button to retry.");
-            M5.Lcd.println("Press side button to switch settings.");
-        }
+        // does nothing
     }
 
     void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn)
     {
-        if (this->_errorMessage == 0)
-            return;
-
-        // m5 button single click to retry
-        if (m5Btn.isSingleClick())
-        {
-            restart();
-            return;
-        }
-
-        // side button single click to switch settings
-        else if (sideBtn.isSingleClick())
-        {
-            this->_context->cycleSettings();
-            restart();
-            return;
-        }
+        // does nothing
     }
 
 private:
@@ -136,10 +78,8 @@ private:
         Serial.printf("Pass: %s\n", passphrase);
         Serial.printf("Connecting to %s with %s...", ssid, passphrase);
 
-        if (this->orientationChangeHandler)
-            this->orientationChangeHandler(LANDSCAPE);
-        if (this->colorChangeHandler)
-            this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
+        this->orientationChangeHandler.fire(LANDSCAPE);
+        this->colorChangeHandler.fire(Colors(TFT_WHITE, TFT_BLACK));
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setCursor(0, 0);
         M5.Lcd.setTextSize(1);
@@ -190,10 +130,8 @@ private:
             }
         }
 
-        if (this->orientationChangeHandler)
-            this->orientationChangeHandler(LANDSCAPE);
-        if (this->colorChangeHandler)
-            this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
+        this->orientationChangeHandler.fire(LANDSCAPE);
+        this->colorChangeHandler.fire(Colors(TFT_WHITE, TFT_BLACK));
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setCursor(0, 0);
         M5.Lcd.setTextSize(1);
@@ -247,7 +185,6 @@ private:
         show();
     }
 
-    char *_errorMessage = 0;
     // local pointers to connection state
     WifiManager *_wifiMgr;
     VmixManager *_vmixMgr;

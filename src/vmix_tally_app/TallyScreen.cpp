@@ -64,8 +64,7 @@ public:
 private:
     void renderTallyText(const char *text)
     {
-        if (this->orientationChangeHandler)
-            this->orientationChangeHandler(LANDSCAPE);
+        this->orientationChangeHandler.fire(LANDSCAPE);
         M5.Lcd.setTextSize(5);
         M5.Lcd.setTextDatum(MC_DATUM);
         M5.Lcd.drawString(text, 80, 40, 1);
@@ -73,8 +72,7 @@ private:
 
     void renderTallyNumber()
     {
-        if (this->orientationChangeHandler)
-            this->orientationChangeHandler(PORTRAIT);
+        this->orientationChangeHandler.fire(PORTRAIT);
         M5.Lcd.setTextSize(7);
         M5.Lcd.setTextDatum(MC_DATUM);
         char *text = new char[4];
@@ -100,14 +98,12 @@ private:
         if (this->_isHighVizMode)
         {
             M5.Lcd.fillScreen(RED);
-            if (this->colorChangeHandler)
-                this->colorChangeHandler(WHITE, RED);
+            this->colorChangeHandler.fire(Colors(WHITE, RED));
         }
         else
         {
             M5.Lcd.fillScreen(BLACK);
-            if (this->colorChangeHandler)
-                this->colorChangeHandler(RED, BLACK);
+            this->colorChangeHandler.fire(Colors(RED, BLACK));
         }
 
         if (this->_orientation == LANDSCAPE)
@@ -127,14 +123,12 @@ private:
         if (this->_isHighVizMode)
         {
             M5.Lcd.fillScreen(GREEN);
-            if (this->colorChangeHandler)
-                this->colorChangeHandler(BLACK, GREEN);
+            this->colorChangeHandler.fire(Colors(BLACK, GREEN));
         }
         else
         {
             M5.Lcd.fillScreen(BLACK);
-            if (this->colorChangeHandler)
-                this->colorChangeHandler(GREEN, BLACK);
+            this->colorChangeHandler.fire(Colors(GREEN, BLACK));
         }
 
         if (this->_orientation == LANDSCAPE)
@@ -152,8 +146,7 @@ private:
         setLedOn(false);
 
         M5.Lcd.fillScreen(BLACK);
-        if (this->colorChangeHandler)
-            this->colorChangeHandler(WHITE, BLACK);
+        this->colorChangeHandler.fire(Colors(WHITE, BLACK));
 
         if (this->_orientation == LANDSCAPE)
         {
@@ -172,14 +165,12 @@ private:
         if (this->_isHighVizMode)
         {
             M5.Lcd.fillScreen(YELLOW);
-            if (this->colorChangeHandler)
-                this->colorChangeHandler(BLACK, YELLOW);
+            this->colorChangeHandler.fire(Colors(BLACK, YELLOW));
         }
         else
         {
             M5.Lcd.fillScreen(BLACK);
-            if (this->colorChangeHandler)
-                this->colorChangeHandler(YELLOW, BLACK);
+            this->colorChangeHandler.fire(Colors(YELLOW, BLACK));
         }
 
         if (this->_orientation == LANDSCAPE)

@@ -5,6 +5,7 @@
 #define ScreenManager_h
 
 #include <PinButton.h>
+#include <Callback.h>
 #include "AppContext.h"
 #include "Screen.h"
 
@@ -14,14 +15,19 @@ public:
     ScreenManager(AppContext &context, unsigned int maxScreens);
     ~ScreenManager();
 
-    OrientationChangeHandler orientationChangeHandler = 0;
+    Signal<unsigned short> orientationChangeHandler;
 
     void begin();
     void add(Screen &screen);
     Screen *getCurrent();
-    void show(unsigned int screen);
+    void show(unsigned short screenId);
     void refresh();
     void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn);
+
+protected:
+    void onOrientationChange(unsigned short orientation);
+    void onColorChange(Colors colors);
+    void showFatalErrorScreen(const char *message);
 
 private:
     class Impl;
