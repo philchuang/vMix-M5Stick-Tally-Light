@@ -18,6 +18,8 @@ class TallyScreen : public Screen
 public:
     TallyScreen(AppContext &context, bool isHighViz) : Screen(context), _isHighVizMode(isHighViz)
     {
+        this->_vmix = this->_context->getVmixManager();
+        // TODO hook into this->_vmix->onTallyStateChange - update tally state, and refresh if currently showing - how to determine?
     }
 
     ~TallyScreen()
@@ -28,7 +30,6 @@ public:
 
     void show()
     {
-        this->_vmix = this->_context->getVmixManager();
         refresh();
     }
 
@@ -56,9 +57,48 @@ public:
         }
     }
 
-    void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn)
+    void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
     {
-        // TODO implement
+        if (this->_orientation == LANDSCAPE)
+        {
+            if (m5Btn.isSingleClick())
+            {
+                this->orientationChangeHandler.fire(PORTRAIT);
+            }
+            else if (m5Btn.isLongClick())
+            {
+                this->cycleBacklightHandler.fire(timestamp);
+            }
+            else if (sideBtn.isSingleClick())
+            {
+                // TODO think of another feature
+            }
+            else if (sideBtn.isLongClick())
+            {
+                this->_vmix->sendQuickPlayInput(this->_tally);
+            }
+        }
+        else
+        {
+            if (m5Btn.isSingleClick())
+            {
+                this->screenChangeHandler.fire(SCREEN_SETTINGS);
+            }
+            else if (m5Btn.isLongClick())
+            {
+                this->cycleBacklightHandler.fire(timestamp);
+            }
+            else if (sideBtn.isDoubleClick())
+            {
+                this->_vmix->setCurrentTallyNumber(this->_tally + 1);
+                refresh();
+            }
+            else if (sideBtn.isLongClick())
+            {
+                this->_vmix->setCurrentTallyNumber(1);
+                refresh();
+            }
+        }
     }
 
 private:

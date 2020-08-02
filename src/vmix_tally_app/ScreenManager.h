@@ -16,16 +16,18 @@ public:
     ~ScreenManager();
 
     Signal<unsigned short> orientationChangeHandler;
+    Signal<unsigned long> cycleBacklightHandler;
 
     void begin();
     void add(Screen &screen);
     Screen *getCurrent();
     void show(unsigned short screenId);
     void refresh();
-    void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn);
+    void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn);
 
 protected:
     void onOrientationChange(unsigned short orientation);
+    void onCycleBacklight(unsigned long timestamp);
     void onColorChange(Colors colors);
     void showFatalErrorScreen(const char *message);
 

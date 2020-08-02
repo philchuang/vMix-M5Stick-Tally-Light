@@ -34,7 +34,7 @@ public:
         M5.Lcd.drawString("& Guido Visser", 80, 55, 1);
     }
 
-    void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn)
+    void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
     {
         // does nothing
     }

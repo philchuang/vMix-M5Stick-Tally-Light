@@ -10,6 +10,7 @@
 #define VmixManager_h
 
 #include <WiFi.h>
+#include <Callback.h>
 
 class VmixManager
 {
@@ -17,13 +18,17 @@ public:
     VmixManager();
     ~VmixManager();
 
+    Signal<char> onTallyStateChange;
+
     void begin();
     bool connect(const char *addr, unsigned short port);
     bool isAlive();
     void disconnect();
+    
+    void receiveInput();
 
     void sendSubscribeTally();
-    void receiveInput();
+    void sendQuickPlayInput(unsigned short tallyNr);
 
     unsigned char getCurrentTallyState();
 

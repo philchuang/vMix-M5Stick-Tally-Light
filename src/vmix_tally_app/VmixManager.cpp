@@ -64,11 +64,6 @@ void VmixManager::disconnect()
     _pimpl->_vmix_client->stop();
 }
 
-void VmixManager::sendSubscribeTally()
-{
-    _pimpl->_vmix_client->println(VMIX_API_SUBSCRIBE_TALLY);
-}
-
 void VmixManager::receiveInput()
 {
     if (!_pimpl->_vmix_client->available())
@@ -81,7 +76,13 @@ void VmixManager::receiveInput()
 
     if (data.indexOf(VMIX_API_GET_TALLY_RESPONSE_PREFIX) == 0)
     {
-        _pimpl->_lastTallyResponse = data.substring(8);
+        auto trimmed = data.substring(8);
+        auto changed = trimmed.equals(_pimpl->_lastTallyResponse);
+        _pimpl->_lastTallyResponse = trimmed;
+        if (changed)
+        {
+            this->onTallyStateChange.fire(this->getCurrentTallyState());
+        }
     }
     else if (data.indexOf(VMIX_API_GET_VERSION_RESPONSE_PREFIX) == 0)
     {
@@ -95,6 +96,19 @@ void VmixManager::receiveInput()
     {
         Serial.println("Function QuickPlay successful.");
     }
+}
+
+void VmixManager::sendSubscribeTally()
+{
+    _pimpl->_vmix_client->println(VMIX_API_SUBSCRIBE_TALLY);
+}
+
+void VmixManager::sendQuickPlayInput(unsigned short tallyNr)
+{
+    if (!_pimpl->_vmix_client->connected())
+        return;
+
+    _pimpl->_vmix_client->printf(VMIX_API_FUNCTION_QUICKPLAY_INPUT, tallyNr);
 }
 
 unsigned char VmixManager::getCurrentTallyState()

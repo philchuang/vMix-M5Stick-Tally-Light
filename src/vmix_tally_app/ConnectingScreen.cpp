@@ -58,7 +58,7 @@ public:
         // does nothing
     }
 
-    void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn)
+    void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
     {
         // does nothing
     }

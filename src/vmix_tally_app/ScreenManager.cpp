@@ -53,6 +53,8 @@ void ScreenManager::add(Screen &screen)
 {
     MethodSlot<ScreenManager, unsigned short> orientationChangeListener(this, &ScreenManager::onOrientationChange);
     screen.orientationChangeHandler.attach(orientationChangeListener);
+    MethodSlot<ScreenManager, unsigned long> cycleBacklightListener(this, &ScreenManager::onCycleBacklight);
+    screen.cycleBacklightHandler.attach(cycleBacklightListener);
     MethodSlot<ScreenManager, Colors> colorChangeListener(this, &ScreenManager::onColorChange);
     screen.colorChangeHandler.attach(colorChangeListener);
     MethodSlot<ScreenManager, unsigned short> screenChangeListener(this, &ScreenManager::show);
@@ -66,6 +68,11 @@ void ScreenManager::add(Screen &screen)
 void ScreenManager::onOrientationChange(unsigned short orientation)
 {
     this->orientationChangeHandler.fire(orientation);
+}
+
+void ScreenManager::onCycleBacklight(unsigned long timestamp)
+{
+    this->cycleBacklightHandler.fire(timestamp);
 }
 
 void ScreenManager::onColorChange(Colors colors)
@@ -99,7 +106,7 @@ void ScreenManager::refresh()
     screen->refresh();
 }
 
-void ScreenManager::handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn)
+void ScreenManager::handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
 {
     auto screen = this->getCurrent();
     screen->handleInput(timestamp, m5Btn, sideBtn);
