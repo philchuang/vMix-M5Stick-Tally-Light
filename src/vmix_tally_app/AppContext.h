@@ -21,8 +21,12 @@ public:
 
     void begin();
     
+    unsigned short getSettingsIdx();
+    unsigned short getNumSettings();
+    
     AppSettings* getSettings();
-    void setSettings(AppSettings &settings);
+    AppSettings* loadSettings(unsigned short settingsIdx);
+    AppSettings* cycleSettings();
 
     WifiManager* getWifiManager();
 

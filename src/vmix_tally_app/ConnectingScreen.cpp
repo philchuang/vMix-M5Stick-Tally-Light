@@ -4,6 +4,9 @@
 #define NUM_WAITS 10
 #define WAIT_INTERVAL_MS 1000
 
+#define WIFI_ERROR "Could not connect to wifi!"
+#define VMIX_ERROR "Could not connect to vMix!"
+
 #define ESP32
 
 #include "Screen.h"
@@ -14,8 +17,6 @@
 #include "AppContext.h"
 #include "WifiManager.h"
 #include "VmixManager.h"
-
-// TODO split into wifi connection screen and vmix connection screen?
 
 class ConnectingScreen : public Screen
 {
@@ -34,36 +35,93 @@ public:
 
     unsigned int getId() { return SCREEN_CONN; }
 
+    void setOrientation(unsigned short orientation)
+    {
+        // does nothing, always landscape
+    }
+
     void show()
     {
+        M5.Lcd.fillScreen(TFT_BLACK);
+
         if (!reconnectWifi())
         {
-            // TODO connection error screen
-            // if (this->showErrorScreenHandler)this->showErrorScreenHandler("Could not connect to wifi!");
+            this->_errorMessage = WIFI_ERROR;
+            refresh();
             return;
         }
 
         if (!reconnectVmix())
         {
-            // TODO connection error screen
-            // main_showErrorScreen("Could not connect to vMix!");
+            this->_errorMessage = VMIX_ERROR;
+            refresh();
             return;
         }
 
         if (this->screenChangeHandler != 0)
+        {
             this->screenChangeHandler(SCREEN_TALLY);
+        }
     }
 
     void refresh()
     {
-        // does nothing
+        if (this->_errorMessage != 0)
+        {
+            M5.Lcd.fillScreen(TFT_BLACK);
+
+            if (this->orientationChangeHandler)
+                this->orientationChangeHandler(LANDSCAPE);
+            if (this->colorChangeHandler)
+                this->colorChangeHandler(TFT_WHITE, TFT_BLACK);
+
+            // display errormessage
+            M5.Lcd.setCursor(0, 0);
+            M5.Lcd.setTextSize(1);
+            M5.Lcd.println(this->_errorMessage);
+            
+            M5.Lcd.println();
+            
+            // display settings
+            auto settings = this->_context->getSettings();
+            auto settingsIdx = this->_context->getSettingsIdx();
+            auto numSettings = this->_context->getNumSettings();
+            M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx + 1, numSettings);
+            M5.Lcd.printf("-SSID: %s\n", settings->getWifiSsid());
+            M5.Lcd.printf("-IP: ");
+            M5.Lcd.println(this->_wifiMgr->localIP());
+            M5.Lcd.printf("-vMix: %s\n", settings->getVmixAddressWithPort());
+
+            M5.Lcd.println();
+
+            // display instructions
+            M5.Lcd.println("Press M5 button to retry.");
+            M5.Lcd.println("Press side button to switch settings.");
+        }
     }
 
     void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn)
     {
-        // does nothing
+        if (this->_errorMessage == 0)
+            return;
+
+        // m5 button single click to retry
+        if (m5Btn.isSingleClick())
+        {
+            restart();
+            return;
+        }
+
+        // side button single click to switch settings
+        else if (sideBtn.isSingleClick())
+        {
+            this->_context->cycleSettings();
+            restart();
+            return;
+        }
     }
 
+private:
     bool reconnectWifi()
     {
         this->_context->setIsWifiConnected(false);
@@ -121,7 +179,6 @@ public:
     {
         this->_context->setIsVmixConnected(false);
         this->_context->setTallyState(TALLY_NONE);
-        // vmix_renderTallyScreen(settings.getVmixTally()); // TODO fire screen change event that screen manager catches
 
         auto settings = this->_context->getSettings();
 
@@ -173,7 +230,25 @@ public:
         return true;
     }
 
-private:
+    void settings_swap()
+    {
+    }
+
+    void restart()
+    {
+        Serial.println();
+        Serial.println();
+        Serial.println("------------");
+        Serial.println("RESTART");
+        Serial.println("------------");
+        Serial.println();
+        Serial.println();
+
+        show();
+    }
+
+    char *_errorMessage = 0;
+    // local pointers to connection state
     WifiManager *_wifiMgr;
     VmixManager *_vmixMgr;
 };

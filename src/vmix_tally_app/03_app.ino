@@ -68,11 +68,12 @@ void setup()
   setCpuFrequencyMhz(80);
   btStop();
 
-  // initialization
+  // hardware initialization
   M5.begin();
   Serial.begin(115200);
   SPIFFS.begin();
 
+  // services initialization
   battery.begin();
   if (HIGH_VIZ_MODE)
   {

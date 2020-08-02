@@ -29,9 +29,10 @@ ScreenManager::ScreenManager(AppContext &context, unsigned int maxScreens)
 
 ScreenManager::~ScreenManager()
 {
+    _pimpl->_context = 0;
     for (auto it = _pimpl->_screens.begin(); it != _pimpl->_screens.end(); ++it)
     {
-        // it->unregister();
+        (*it)->unregister();
     }
     _pimpl->_screens.clear();
 }
@@ -43,8 +44,8 @@ void ScreenManager::begin()
 
 void ScreenManager::add(Screen &screen)
 {
-    // screen->register(&this);
-    _pimpl->_screens[screen.getId()] = &screen;
+    // TODO register event handlers
+    screen.orientationChangeHandler = this->orientationChangeHandler;
     _pimpl->_screens[screen.getId()] = &screen;
 }
 

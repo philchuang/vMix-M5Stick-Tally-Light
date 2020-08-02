@@ -14,9 +14,11 @@ public:
     ScreenManager(AppContext &context, unsigned int maxScreens);
     ~ScreenManager();
 
+    OrientationChangeHandler orientationChangeHandler = 0;
+
     void begin();
     void add(Screen &screen);
-    Screen* getCurrent();
+    Screen *getCurrent();
     void show(unsigned int screen);
     void refresh();
     void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn);
