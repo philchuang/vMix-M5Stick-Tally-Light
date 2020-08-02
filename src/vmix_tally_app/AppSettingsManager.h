@@ -11,13 +11,18 @@ class AppSettingsManager
 public:
     AppSettingsManager(unsigned short eepromSize, unsigned short numSettings);
     ~AppSettingsManager();
+    
     void begin();
     AppSettings load(unsigned short settingsIdx);
-    void save(unsigned short settingsIdx, AppSettings settings);
+    void save(unsigned short settingsIdx, AppSettings *settings);
     void clear(unsigned short settingsIdx);
+    unsigned short getNumSettings();
+    
+     // TEMPORARY
     void saveUptimeInfo(unsigned long uptime, double batteryLevel);
-    unsigned long getLastUptime(); // TEMPORARY
-    double getLastBatteryLevel(); // TEMPORARY
+    unsigned long getLastUptime();
+    double getLastBatteryLevel();
+
 private:
     class Impl;
     Impl *_pimpl;

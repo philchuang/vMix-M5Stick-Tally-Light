@@ -57,7 +57,7 @@ void settings_load()
       s.setVmixTally(SETTINGS1_TALLY_NR);
     }
 #endif
-    settingsMgr.save(settingsIdx, s);
+    settingsMgr.save(settingsIdx, &s);
     settings = s;
     Serial.println("Default settings:");
     settings_print();
@@ -85,7 +85,7 @@ void settings_save()
 {
   Serial.println("Saving settings...");
 
-  settingsMgr.save(settingsIdx, settings);
+  settingsMgr.save(settingsIdx, &settings);
 
   Serial.println("Settings saved.");
 }
