@@ -5,6 +5,7 @@
 #include <M5StickC.h>
 #include <stdio.h>
 #include <vector>
+#include <Callback.h>
 #include "AppContext.h"
 #include "Screen.h"
 #include "ErrorScreen.cpp"
@@ -25,6 +26,7 @@ struct ScreenManager::Impl
 
     unsigned short _lastForegroundColor;
     unsigned short _lastBackgroundColor;
+    Signal<unsigned short> _sendScreenChanged;
 };
 
 ScreenManager::ScreenManager(AppContext &context, unsigned int maxScreens)
@@ -34,6 +36,7 @@ ScreenManager::ScreenManager(AppContext &context, unsigned int maxScreens)
 
 ScreenManager::~ScreenManager()
 {
+    _pimpl->_sendScreenChanged.~Signal();
     _pimpl->_context = 0;
     for (auto it = _pimpl->_screens.begin(); it != _pimpl->_screens.end(); ++it)
     {
@@ -41,7 +44,7 @@ ScreenManager::~ScreenManager()
     }
     _pimpl->_screens.clear();
 
-    this->orientationChangeHandler.~Signal();
+    this->sendOrientationChange.~Signal();
 }
 
 void ScreenManager::begin()
@@ -52,27 +55,29 @@ void ScreenManager::begin()
 void ScreenManager::add(Screen &screen)
 {
     MethodSlot<ScreenManager, unsigned short> orientationChangeListener(this, &ScreenManager::onOrientationChange);
-    screen.orientationChangeHandler.attach(orientationChangeListener);
+    screen.sendOrientationChange.attach(orientationChangeListener);
     MethodSlot<ScreenManager, unsigned long> cycleBacklightListener(this, &ScreenManager::onCycleBacklight);
-    screen.cycleBacklightHandler.attach(cycleBacklightListener);
+    screen.sendCycleBacklight.attach(cycleBacklightListener);
     MethodSlot<ScreenManager, Colors> colorChangeListener(this, &ScreenManager::onColorChange);
-    screen.colorChangeHandler.attach(colorChangeListener);
+    screen.sendColorChange.attach(colorChangeListener);
     MethodSlot<ScreenManager, unsigned short> screenChangeListener(this, &ScreenManager::show);
-    screen.screenChangeHandler.attach(screenChangeListener);
-    MethodSlot<ScreenManager, const char *> showFatalErrorScreenListener(this, &ScreenManager::showFatalErrorScreen);
-    screen.showFatalErrorScreenHandler.attach(showFatalErrorScreenListener);
-    
+    screen.sendScreenChange.attach(screenChangeListener);
+    MethodSlot<ScreenManager, const char *> showFatalErrorScreenListener(this, &ScreenManager::onShowFatalErrorScreen);
+    screen.sendShowFatalErrorScreen.attach(showFatalErrorScreenListener);
+    MethodSlot<Screen, unsigned short> onScreenChangedListener(&screen, &Screen::onScreenChanged);
+    _pimpl->_sendScreenChanged.attach(onScreenChangedListener);
     _pimpl->_screens[screen.getId()] = &screen;
 }
 
 void ScreenManager::onOrientationChange(unsigned short orientation)
 {
-    this->orientationChangeHandler.fire(orientation);
+    this->sendOrientationChange.fire(orientation);
 }
 
 void ScreenManager::onCycleBacklight(unsigned long timestamp)
 {
-    this->cycleBacklightHandler.fire(timestamp);
+    // TODO replace this with main loop event and integrate this class into the main loop
+    this->sendCycleBacklight.fire(timestamp);
 }
 
 void ScreenManager::onColorChange(Colors colors)
@@ -82,7 +87,7 @@ void ScreenManager::onColorChange(Colors colors)
     M5.Lcd.setTextColor(colors.foreColor, colors.backColor);
 }
 
-void ScreenManager::showFatalErrorScreen(const char *message)
+void ScreenManager::onShowFatalErrorScreen(const char *message)
 {
     auto errorScreen = reinterpret_cast<ErrorScreen *>(_pimpl->_screens[SCREEN_ERROR]);
     errorScreen->setMessage(message);
@@ -97,6 +102,7 @@ Screen *ScreenManager::getCurrent()
 void ScreenManager::show(unsigned short screenId)
 {
     _pimpl->_currentScreen = screenId;
+    _pimpl->_sendScreenChanged.fire(screenId);
     this->refresh();
 }
 

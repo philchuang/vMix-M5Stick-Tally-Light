@@ -25,8 +25,8 @@ public:
 
     void refresh()
     {
-        this->orientationChangeHandler.fire(LANDSCAPE);
-        this->colorChangeHandler.fire(Colors(TFT_WHITE, TFT_BLACK));
+        this->sendOrientationChange.fire(LANDSCAPE);
+        this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setTextDatum(MC_DATUM);
         M5.Lcd.drawString("vMix M5Stick-C Tally", 80, 15, 2);

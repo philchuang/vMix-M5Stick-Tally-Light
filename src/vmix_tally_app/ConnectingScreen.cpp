@@ -40,17 +40,17 @@ public:
 
         if (!reconnectWifi())
         {
-            this->showFatalErrorScreenHandler.fire(WIFI_ERROR);
+            this->sendShowFatalErrorScreen.fire(WIFI_ERROR);
             return;
         }
 
         if (!reconnectVmix())
         {
-            this->showFatalErrorScreenHandler.fire(VMIX_ERROR);
+            this->sendShowFatalErrorScreen.fire(VMIX_ERROR);
             return;
         }
 
-        this->screenChangeHandler.fire(SCREEN_TALLY);
+        this->sendScreenChange.fire(SCREEN_TALLY);
     }
 
     void refresh()
@@ -78,8 +78,8 @@ private:
         Serial.printf("Pass: %s\n", passphrase);
         Serial.printf("Connecting to %s with %s...", ssid, passphrase);
 
-        this->orientationChangeHandler.fire(LANDSCAPE);
-        this->colorChangeHandler.fire(Colors(TFT_WHITE, TFT_BLACK));
+        this->sendOrientationChange.fire(LANDSCAPE);
+        this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setCursor(0, 0);
         M5.Lcd.setTextSize(1);
@@ -130,8 +130,8 @@ private:
             }
         }
 
-        this->orientationChangeHandler.fire(LANDSCAPE);
-        this->colorChangeHandler.fire(Colors(TFT_WHITE, TFT_BLACK));
+        this->sendOrientationChange.fire(LANDSCAPE);
+        this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setCursor(0, 0);
         M5.Lcd.setTextSize(1);

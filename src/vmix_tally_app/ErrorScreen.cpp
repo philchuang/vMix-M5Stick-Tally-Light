@@ -32,8 +32,8 @@ public:
     {
         M5.Lcd.fillScreen(TFT_BLACK);
 
-        this->orientationChangeHandler.fire(LANDSCAPE);
-        this->colorChangeHandler.fire(Colors(TFT_WHITE, TFT_BLACK));
+        this->sendOrientationChange.fire(LANDSCAPE);
+        this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
 
         // display errormessage
         M5.Lcd.setCursor(0, 0);
@@ -68,7 +68,7 @@ public:
         if (m5Btn.isSingleClick())
         {
             this->_message = 0;
-            this->screenChangeHandler.fire(SCREEN_CONN);
+            this->sendScreenChange.fire(SCREEN_CONN);
             return;
         }
 
@@ -77,7 +77,7 @@ public:
         {
             this->_message = 0;
             this->_context->cycleSettings();
-            this->screenChangeHandler.fire(SCREEN_CONN);
+            this->sendScreenChange.fire(SCREEN_CONN);
             return;
         }
     }

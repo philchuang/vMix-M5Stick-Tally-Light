@@ -7,6 +7,7 @@
 #include "Screen.h"
 
 #include <string>
+#include <Callback.h>
 #include <M5StickC.h>
 #include <PinButton.h>
 #include "OrientationManager.h"
@@ -19,7 +20,8 @@ public:
     TallyScreen(AppContext &context, bool isHighViz) : Screen(context), _isHighVizMode(isHighViz)
     {
         this->_vmix = this->_context->getVmixManager();
-        // TODO hook into this->_vmix->onTallyStateChange - update tally state, and refresh if currently showing - how to determine?
+        MethodSlot<TallyScreen, char> tallyStateChangedListener(this, &TallyScreen::handleTallyStateChanged);
+        this->_vmix->onTallyStateChange.attach(tallyStateChangedListener);
     }
 
     ~TallyScreen()
@@ -28,8 +30,19 @@ public:
 
     unsigned int getId() { return SCREEN_TALLY; }
 
+    void onScreenChanged(unsigned short screenId)
+    {
+        this->_isShowing = screenId == this->getId();
+    }
+
+    void handleTallyStateChanged(char tallyState)
+    {
+        refresh();
+    }
+
     void show()
     {
+        this->_isShowing = true;
         refresh();
     }
 
@@ -37,6 +50,9 @@ public:
     {
         this->_tallyState = this->_vmix->getCurrentTallyState();
         this->_tally = this->_vmix->getCurrentTallyNumber();
+
+        if (!this->_isShowing)
+            return;
 
         switch (this->_tallyState)
         {
@@ -63,11 +79,11 @@ public:
         {
             if (m5Btn.isSingleClick())
             {
-                this->orientationChangeHandler.fire(PORTRAIT);
+                this->sendOrientationChange.fire(PORTRAIT);
             }
             else if (m5Btn.isLongClick())
             {
-                this->cycleBacklightHandler.fire(timestamp);
+                this->sendCycleBacklight.fire(timestamp);
             }
             else if (sideBtn.isSingleClick())
             {
@@ -82,11 +98,11 @@ public:
         {
             if (m5Btn.isSingleClick())
             {
-                this->screenChangeHandler.fire(SCREEN_SETTINGS);
+                this->sendScreenChange.fire(SCREEN_SETTINGS);
             }
             else if (m5Btn.isLongClick())
             {
-                this->cycleBacklightHandler.fire(timestamp);
+                this->sendCycleBacklight.fire(timestamp);
             }
             else if (sideBtn.isDoubleClick())
             {
@@ -104,7 +120,7 @@ public:
 private:
     void renderTallyText(const char *text)
     {
-        this->orientationChangeHandler.fire(LANDSCAPE);
+        this->sendOrientationChange.fire(LANDSCAPE);
         M5.Lcd.setTextSize(5);
         M5.Lcd.setTextDatum(MC_DATUM);
         M5.Lcd.drawString(text, 80, 40, 1);
@@ -112,7 +128,7 @@ private:
 
     void renderTallyNumber()
     {
-        this->orientationChangeHandler.fire(PORTRAIT);
+        this->sendOrientationChange.fire(PORTRAIT);
         M5.Lcd.setTextSize(7);
         M5.Lcd.setTextDatum(MC_DATUM);
         char *text = new char[4];
@@ -138,12 +154,12 @@ private:
         if (this->_isHighVizMode)
         {
             M5.Lcd.fillScreen(RED);
-            this->colorChangeHandler.fire(Colors(WHITE, RED));
+            this->sendColorChange.fire(Colors(WHITE, RED));
         }
         else
         {
             M5.Lcd.fillScreen(BLACK);
-            this->colorChangeHandler.fire(Colors(RED, BLACK));
+            this->sendColorChange.fire(Colors(RED, BLACK));
         }
 
         if (this->_orientation == LANDSCAPE)
@@ -163,12 +179,12 @@ private:
         if (this->_isHighVizMode)
         {
             M5.Lcd.fillScreen(GREEN);
-            this->colorChangeHandler.fire(Colors(BLACK, GREEN));
+            this->sendColorChange.fire(Colors(BLACK, GREEN));
         }
         else
         {
             M5.Lcd.fillScreen(BLACK);
-            this->colorChangeHandler.fire(Colors(GREEN, BLACK));
+            this->sendColorChange.fire(Colors(GREEN, BLACK));
         }
 
         if (this->_orientation == LANDSCAPE)
@@ -186,7 +202,7 @@ private:
         setLedOn(false);
 
         M5.Lcd.fillScreen(BLACK);
-        this->colorChangeHandler.fire(Colors(WHITE, BLACK));
+        this->sendColorChange.fire(Colors(WHITE, BLACK));
 
         if (this->_orientation == LANDSCAPE)
         {
@@ -205,12 +221,12 @@ private:
         if (this->_isHighVizMode)
         {
             M5.Lcd.fillScreen(YELLOW);
-            this->colorChangeHandler.fire(Colors(BLACK, YELLOW));
+            this->sendColorChange.fire(Colors(BLACK, YELLOW));
         }
         else
         {
             M5.Lcd.fillScreen(BLACK);
-            this->colorChangeHandler.fire(Colors(YELLOW, BLACK));
+            this->sendColorChange.fire(Colors(YELLOW, BLACK));
         }
 
         if (this->_orientation == LANDSCAPE)
@@ -236,6 +252,7 @@ private:
     VmixManager *_vmix;
     unsigned char _tallyState;
     unsigned short _tally;
+    bool _isShowing;
 };
 
 #endif

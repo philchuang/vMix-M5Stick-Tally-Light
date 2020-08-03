@@ -21,19 +21,24 @@ public:
     Screen(AppContext &context) : _context(&context) {}
     ~Screen();
 
-    Signal<unsigned short> orientationChangeHandler;
-    Signal<unsigned long> cycleBacklightHandler;
-    Signal<Colors> colorChangeHandler;
-    Signal<unsigned short> screenChangeHandler;
-    Signal<const char *> showFatalErrorScreenHandler;
+    Signal<unsigned short> sendOrientationChange;
+    Signal<unsigned long> sendCycleBacklight;
+    Signal<Colors> sendColorChange;
+    Signal<unsigned short> sendScreenChange;
+    Signal<const char *> sendShowFatalErrorScreen;
 
     void unregister()
     {
-        this->orientationChangeHandler.~Signal();
-        this->cycleBacklightHandler.~Signal();
-        this->colorChangeHandler.~Signal();
-        this->screenChangeHandler.~Signal();
-        this->showFatalErrorScreenHandler.~Signal();
+        this->sendOrientationChange.~Signal();
+        this->sendCycleBacklight.~Signal();
+        this->sendColorChange.~Signal();
+        this->sendScreenChange.~Signal();
+        this->sendShowFatalErrorScreen.~Signal();
+    }
+
+    virtual void onScreenChanged(unsigned short screenId)
+    {
+        // default implementation does nothing
     }
 
     virtual unsigned int getId() = 0;

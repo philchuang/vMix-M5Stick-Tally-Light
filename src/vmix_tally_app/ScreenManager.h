@@ -15,8 +15,8 @@ public:
     ScreenManager(AppContext &context, unsigned int maxScreens);
     ~ScreenManager();
 
-    Signal<unsigned short> orientationChangeHandler;
-    Signal<unsigned long> cycleBacklightHandler;
+    Signal<unsigned short> sendOrientationChange;
+    Signal<unsigned long> sendCycleBacklight;
 
     void begin();
     void add(Screen &screen);
@@ -29,7 +29,7 @@ protected:
     void onOrientationChange(unsigned short orientation);
     void onCycleBacklight(unsigned long timestamp);
     void onColorChange(Colors colors);
-    void showFatalErrorScreen(const char *message);
+    void onShowFatalErrorScreen(const char *message);
 
 private:
     class Impl;
