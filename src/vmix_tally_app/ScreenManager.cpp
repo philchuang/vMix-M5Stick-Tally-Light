@@ -30,7 +30,7 @@ struct ScreenManager::Impl
     AppContext *_context;
     unsigned int _currentScreen;
     std::vector<Screen *> _screens;
-    LoopEvent *_screenRefreshCheck;
+    SlotLoopEvent *_screenRefreshCheck;
 
     unsigned short _lastForegroundColor;
     unsigned short _lastBackgroundColor;
@@ -40,8 +40,8 @@ struct ScreenManager::Impl
 ScreenManager::ScreenManager(AppContext &context, unsigned int maxScreens)
     : _pimpl(new Impl(context, maxScreens))
 {
-    // TODO adopt Callback.h into LoopEvent to properly handle function pointers
-    auto temp = LoopEvent(ScreenManager::pollForceRefresh, APP_SCREENREFRESH_MS);
+    MethodSlot<ScreenManager, unsigned long> forceRefreshListener(this, &ScreenManager::pollForceRefresh);
+    auto temp = SlotLoopEvent(forceRefreshListener, APP_SCREENREFRESH_MS);
     _pimpl->_screenRefreshCheck = &temp;
 }
 
@@ -62,7 +62,6 @@ ScreenManager::~ScreenManager()
 
 void ScreenManager::begin()
 {
-    // TODO anything go here?
 }
 
 void ScreenManager::add(Screen &screen)

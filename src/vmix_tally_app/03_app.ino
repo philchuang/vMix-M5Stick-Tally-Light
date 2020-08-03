@@ -137,6 +137,7 @@ void main_begin()
 
 void main_setupLoopListeners()
 {
+  // TODO migrate these to SlotLoopEvent
   loopEvents.push_back(LoopEvent(main_checkIsCharging, M5_CHARGING_MS));
   loopEvents.push_back(LoopEvent(main_checkBatteryLevel, M5_BATTERYLEVEL_MS));
   loopEvents.push_back(LoopEvent(main_checkOrientation, APP_ORIENTATION_MS));
