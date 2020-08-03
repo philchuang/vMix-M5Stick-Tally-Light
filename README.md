@@ -30,11 +30,12 @@ Or if you can't wait, you can buy it for [$20 from Amazon](https://www.amazon.co
 
 1. Follow the arduino tutorial on the [M5Stack website](https://docs.m5stack.com/#/en/arduino/arduino_development).
     1. Instead of Arduino IDE you can also use [Visual Studio Code](https://code.visualstudio.com/) with the [Arduino extension](https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino).
-1. Copy the libraries that are used by this project (found in the `~\libs` folder) to `%userprofile%\Documents\Arduino\libraries`.
+2. Download this project from github onto your computer (click on the green `Code` button at the top of the page).
+3. Copy the libraries that are used by this project (found in the `~\libs` folder) to `%userprofile%\Documents\Arduino\libraries`.
 
 ### Step 2
 
-Copy `~\src\vmix_tally_app\01_config.ino.template` as `01_config.ino` and change the values to match your setup. The second set of settings are optional, uncomment and update them if needed.
+Copy `~\src\vmix_tally_app\01_config.ino.template` as `01_config.ino` and change the values to match your setup. The second set of settings are optional, uncomment and update them if needed. You will want to configure your router so that the vmix machine has a static IP address.
 
 ```c
 #define SETTINGS0_WIFI_SSID "your_wifi1"
