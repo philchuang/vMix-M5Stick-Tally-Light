@@ -14,11 +14,12 @@
 #include <stdio.h>
 #include <string>
 #include <M5StickC.h>
-#include "OrientationManager.h"
 #include "AppSettings.h"
 #include "AppSettingsManager.h"
 #include "WifiManager.h"
 #include "VmixManager.h"
+#include "OrientationManager.h"
+#include "BatteryManager.h"
 
 struct AppContext::Impl
 {
@@ -40,6 +41,7 @@ struct AppContext::Impl
     bool _isCharging;
     double _batteryLevel;
     OrientationManager *_orientationMgr;
+    BatteryManager *_batteryMgr;
     WifiManager *_wifiMgr;
     VmixManager *_vmixMgr;
 };
@@ -51,9 +53,12 @@ AppContext::AppContext()
 
 AppContext::~AppContext()
 {
-    _pimpl->_appSettingsMgr = 0;
-    _pimpl->_wifiMgr = 0;
-    _pimpl->_vmixMgr = 0;
+    delete _pimpl->_appSettings;
+    delete _pimpl->_appSettingsMgr;
+    delete _pimpl->_wifiMgr;
+    delete _pimpl->_vmixMgr;
+    delete _pimpl->_orientationMgr;
+    delete _pimpl->_batteryMgr;
 };
 
 void AppContext::begin()
@@ -68,6 +73,13 @@ void AppContext::begin()
     _pimpl->_wifiMgr = &wifi;
     auto vmix = VmixManager();
     _pimpl->_vmixMgr = &vmix;
+    auto batt = BatteryManager();
+    _pimpl->_batteryMgr = &batt;
+}
+
+bool AppContext::getOrientation()
+{
+    return _pimpl->_orientationMgr->getOrientation();
 }
 
 unsigned short AppContext::getSettingsIdx()
@@ -167,4 +179,9 @@ double AppContext::getBatteryLevel()
 void AppContext::setBatteryLevel(double battery)
 {
     _pimpl->_batteryLevel = battery;
+}
+
+unsigned int AppContext::cycleBacklight()
+{
+    return _pimpl->_batteryMgr->cycleBacklight();
 }

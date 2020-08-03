@@ -37,6 +37,8 @@ public:
 
     bool getIsVmixConnected();
     void setIsVmixConnected(bool connected);
+
+    bool getOrientation();
     
     char getTallyState();
     void setTallyState(char state);
@@ -49,6 +51,8 @@ public:
 
     double getBatteryLevel();
     void setBatteryLevel(double batt);
+
+    unsigned int cycleBacklight();
 
 private:
     class Impl;

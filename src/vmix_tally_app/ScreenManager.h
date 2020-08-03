@@ -16,7 +16,6 @@ public:
     ~ScreenManager();
 
     Signal<unsigned short> sendOrientationChange;
-    Signal<unsigned long> sendCycleBacklight;
 
     void begin();
     void add(Screen &screen);
@@ -30,6 +29,7 @@ protected:
     void onCycleBacklight(unsigned long timestamp);
     void onColorChange(Colors colors);
     void onShowFatalErrorScreen(const char *message);
+    void pollForceRefresh(unsigned long timestamp);
 
 private:
     class Impl;

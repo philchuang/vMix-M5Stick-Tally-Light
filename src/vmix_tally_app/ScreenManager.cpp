@@ -1,14 +1,19 @@
 #define ESP32
 
+#define APP_SCREENREFRESH_MS 10000u
+#define APP_BRIGHTNESS_TIMEOUT_MS 1000u
+
 #include "ScreenManager.h"
 
 #include <M5StickC.h>
 #include <stdio.h>
+#include <string>
 #include <vector>
 #include <Callback.h>
 #include "AppContext.h"
 #include "Screen.h"
 #include "ErrorScreen.cpp"
+#include "LoopEvent.h"
 
 struct ScreenManager::Impl
 {
@@ -20,31 +25,39 @@ struct ScreenManager::Impl
     {
     }
 
+    Signal<unsigned short> _sendScreenChanged;
+
     AppContext *_context;
     unsigned int _currentScreen;
     std::vector<Screen *> _screens;
+    LoopEvent *_screenRefreshCheck;
 
     unsigned short _lastForegroundColor;
     unsigned short _lastBackgroundColor;
-    Signal<unsigned short> _sendScreenChanged;
+    unsigned int _lastBrightness = 0;
 };
 
 ScreenManager::ScreenManager(AppContext &context, unsigned int maxScreens)
     : _pimpl(new Impl(context, maxScreens))
 {
+    // TODO adopt Callback.h into LoopEvent to properly handle function pointers
+    auto temp = LoopEvent(ScreenManager::pollForceRefresh, APP_SCREENREFRESH_MS);
+    _pimpl->_screenRefreshCheck = &temp;
 }
 
 ScreenManager::~ScreenManager()
 {
+    this->sendOrientationChange.~Signal();
     _pimpl->_sendScreenChanged.~Signal();
-    _pimpl->_context = 0;
+    delete _pimpl->_screenRefreshCheck;
+    
     for (auto it = _pimpl->_screens.begin(); it != _pimpl->_screens.end(); ++it)
     {
         (*it)->unregister();
     }
     _pimpl->_screens.clear();
 
-    this->sendOrientationChange.~Signal();
+    delete _pimpl->_context;
 }
 
 void ScreenManager::begin()
@@ -76,8 +89,39 @@ void ScreenManager::onOrientationChange(unsigned short orientation)
 
 void ScreenManager::onCycleBacklight(unsigned long timestamp)
 {
-    // TODO replace this with main loop event and integrate this class into the main loop
-    this->sendCycleBacklight.fire(timestamp);
+    _pimpl->_screenRefreshCheck->setNextExecute(timestamp + APP_BRIGHTNESS_TIMEOUT_MS);
+
+    char *brightnessString = new char[4];
+    M5.Lcd.setTextSize(1);
+    M5.Lcd.setTextDatum(MC_DATUM);
+
+    // blit out previous message
+    M5.Lcd.setTextColor(_pimpl->_lastBackgroundColor);
+    sprintf(brightnessString, "%d%%", _pimpl->_lastBrightness);
+    
+    auto orientation = _pimpl->_context->getOrientation();
+    if (orientation == LANDSCAPE)
+    {
+        M5.Lcd.drawString(brightnessString, 80, 80, 1);
+    }
+    else
+    {
+        M5.Lcd.drawString(brightnessString, 40, 160, 1);
+    }
+
+    _pimpl->_lastBrightness = _pimpl->_context->cycleBacklight();
+
+    // display new message
+    M5.Lcd.setTextColor(_pimpl->_lastForegroundColor);
+    sprintf(brightnessString, "%d%%", _pimpl->_lastBrightness);
+    if (orientation == LANDSCAPE)
+    {
+        M5.Lcd.drawString(brightnessString, 80, 80, 1);
+    }
+    else
+    {
+        M5.Lcd.drawString(brightnessString, 40, 160, 1);
+    }
 }
 
 void ScreenManager::onColorChange(Colors colors)
@@ -114,6 +158,12 @@ void ScreenManager::refresh()
 
 void ScreenManager::handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
 {
+    _pimpl->_screenRefreshCheck->execute(timestamp);
     auto screen = this->getCurrent();
     screen->handleInput(timestamp, m5Btn, sideBtn);
+}
+
+void ScreenManager::pollForceRefresh(unsigned long timestamp)
+{
+    this->refresh();
 }
