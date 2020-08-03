@@ -92,6 +92,11 @@ unsigned short AppContext::getNumSettings()
     return _pimpl->_appSettingsMgr->getNumSettings();
 }
 
+AppSettingsManager* AppContext::getSettingsManager()
+{
+    return _pimpl->_appSettingsMgr;
+}
+
 AppSettings *AppContext::getSettings()
 {
     return _pimpl->_appSettings;

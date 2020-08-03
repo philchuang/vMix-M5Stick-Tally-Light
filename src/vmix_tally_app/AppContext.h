@@ -10,6 +10,7 @@
 #define AppContext_h
 
 #include "AppSettings.h"
+#include "AppSettingsManager.h"
 #include "WifiManager.h"
 #include "VmixManager.h"
 
@@ -24,6 +25,7 @@ public:
     unsigned short getSettingsIdx();
     unsigned short getNumSettings();
     
+    AppSettingsManager* getSettingsManager();
     AppSettings* getSettings();
     AppSettings* loadSettings(unsigned short settingsIdx);
     AppSettings* cycleSettings();

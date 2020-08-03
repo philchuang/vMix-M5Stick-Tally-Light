@@ -1,8 +1,8 @@
-#define SCREEN_ERROR    0
-#define SCREEN_SPLASH   1
-#define SCREEN_CONN     2
-#define SCREEN_TALLY    3
-#define SCREEN_SETTINGS 4
+#define SCREEN_ERROR    0u
+#define SCREEN_SPLASH   1u
+#define SCREEN_CONN     2u
+#define SCREEN_TALLY    3u
+#define SCREEN_SETTINGS 4u
 
 #define LANDSCAPE 0
 #define PORTRAIT  1
