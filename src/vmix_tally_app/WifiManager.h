@@ -1,9 +1,10 @@
 /* WifiManager.h - class that handles wifi connections
  */
 
-#ifndef WifiManager_h
-#define WifiManager_h
+#ifndef WIFIMANAGER_H
+#define WIFIMANAGER_H
 
+// libraries
 #include <IPAddress.h>
 
 class WifiManager

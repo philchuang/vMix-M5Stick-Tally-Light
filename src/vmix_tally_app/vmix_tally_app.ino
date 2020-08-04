@@ -1,17 +1,29 @@
-#define ESP32
+// this file only contains includes
 
+// hardware
+#define ESP32
 #include <HardwareSerial.h>
 #include <M5StickC.h>
 #include <WiFi.h>
 #include <SPIFFS.h>
-#include <PinButton.h>
-#include <vector>
 
+// libraries
+#include <string>
+#include <vector>
+#include <PinButton.h>
+#include <Callback.h>
+
+// app
+#include "AppContext.h"
 #include "AppSettings.h"
 #include "AppSettingsManager.h"
 #include "BatteryManager.h"
-#include "OrientationManager.h"
 #include "LoopEvent.h"
+#include "OrientationManager.h"
+#include "Screen.h"
+#include "ScreenManager.h"
+#include "VmixManager.h"
+#include "WifiManager.h"
 
 #define LED_BUILTIN 10
 
@@ -54,3 +66,4 @@ byte currentScreen;
 unsigned int conn_Reconnections;
 bool isCharging;
 double currentBatteryLevel;
+AppContext *_context;

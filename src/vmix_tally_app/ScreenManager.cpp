@@ -1,19 +1,26 @@
-#define ESP32
-
-#define APP_SCREENREFRESH_MS 10000u
-#define APP_BRIGHTNESS_TIMEOUT_MS 1000u
-
 #include "ScreenManager.h"
 
+// hardware
+#define ESP32
 #include <M5StickC.h>
+
+// libraries
 #include <stdio.h>
 #include <string>
 #include <vector>
 #include <Callback.h>
+
+// app
 #include "AppContext.h"
-#include "Screen.h"
 #include "ErrorScreen.cpp"
 #include "LoopEvent.h"
+#include "Screen.h"
+
+// constants
+#define APP_SCREENREFRESH_MS 10000u
+#define APP_BRIGHTNESS_TIMEOUT_MS 1000u
+
+// TODO continue refactor & cleanup here
 
 struct ScreenManager::Impl
 {

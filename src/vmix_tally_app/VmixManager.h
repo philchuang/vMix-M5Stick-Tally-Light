@@ -6,10 +6,10 @@
 #define TALLY_LIVE '1'
 #define TALLY_PRE  '2'
 
-#ifndef VmixManager_h
-#define VmixManager_h
+#ifndef VMIXMANAGER_H
+#define VMIXMANAGER_H
 
-#include <WiFi.h>
+// libraries
 #include <Callback.h>
 
 class VmixManager

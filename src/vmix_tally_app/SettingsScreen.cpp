@@ -1,14 +1,14 @@
-#ifndef SETTINGSSCREEN_H
-#define SETTINGSSCREEN_H
-
+// hardware
 #define ESP32
 #define LOG_BATTERY 1
-
-#include "Screen.h"
-
 #include <M5StickC.h>
+
+// libraries
 #include <PinButton.h>
+
+// app
 #include "AppContext.h"
+#include "Screen.h"
 
 class SettingsScreen : public Screen
 {
@@ -87,5 +87,3 @@ public:
         }
     }
 };
-
-#endif

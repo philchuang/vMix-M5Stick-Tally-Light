@@ -1,4 +1,5 @@
-// copy to 01_config.ino
+// copy to 01_config.ino and update with your configuration
+// this file only contains default network configuration
 
 #define SETTINGS0_WIFI_SSID "your_wifi1"
 #define SETTINGS0_WIFI_PASS "wifi_pass1"

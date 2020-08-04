@@ -1,17 +1,21 @@
 #include "AppSettings.h"
-#include <stdio.h>
-#include <string.h>
-#include <EEPROM.h>
+
+// hardware
 #include <M5StickC.h>
+#include <EEPROM.h>
+
+// libraries
+#include <stdio.h>
+#include <string>
 
 struct AppSettings::Impl
 {
     Impl() { }
     ~Impl() { }
 
-    char *_WifiSsid = new char[AppSettings_WifiSsidMaxLength];
-    char *_WifiPassphrase = new char[AppSettings_WifiPassMaxLength];
-    char *_VmixAddress = new char[AppSettings_VmixAddrMaxLength];
+    char *_WifiSsid = new char[WifiSsidMaxLength];
+    char *_WifiPassphrase = new char[WifiPassMaxLength];
+    char *_VmixAddress = new char[VmixAddrMaxLength];
     unsigned short _VmixPort;
     unsigned short _VmixTally;
 };
@@ -75,7 +79,7 @@ void AppSettings::setVmixTally(unsigned short tally)
 
 char *AppSettings::getVmixAddressWithPort()
 {
-    char *full = new char[AppSettings_VmixAddrMaxLength + 1 + 5];
+    char *full = new char[VmixAddrMaxLength + 1 + 5];
     sprintf(full, "%s:%u", _pimpl->_VmixAddress, _pimpl->_VmixPort);
     return full;
 }

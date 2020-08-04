@@ -1,18 +1,15 @@
 /* AppContext.h - class that contains application-wide state
  */
 
-#define TALLY_NONE '?'
-#define TALLY_SAFE '0'
-#define TALLY_LIVE '1'
-#define TALLY_PRE  '2'
-
-#ifndef AppContext_h
-#define AppContext_h
+#ifndef APPCONTEXT_H
+#define APPCONTEXT_H
 
 #include "AppSettings.h"
 #include "AppSettingsManager.h"
-#include "WifiManager.h"
+#include "BatteryManager.h"
+#include "OrientationManager.h"
 #include "VmixManager.h"
+#include "WifiManager.h"
 
 class AppContext
 {
@@ -22,40 +19,37 @@ public:
 
     void begin();
     
+    AppSettingsManager* getSettingsManager();
     unsigned short getSettingsIdx();
     unsigned short getNumSettings();
-    
-    AppSettingsManager* getSettingsManager();
     AppSettings* getSettings();
     AppSettings* loadSettings(unsigned short settingsIdx);
     AppSettings* cycleSettings();
+    // TODO saveSettings(AppSettings &settings);
 
     WifiManager* getWifiManager();
-
     bool getIsWifiConnected();
     void setIsWifiConnected(bool connected);
 
     VmixManager* getVmixManager();
-
     bool getIsVmixConnected();
     void setIsVmixConnected(bool connected);
-
-    bool getOrientation();
-    
     char getTallyState();
     void setTallyState(char state);
 
-    unsigned int getNumReconnections();
-    void incNumReconnections();
+    OrientationManager* getOrientationManager();
+    bool getOrientation();
 
+    BatteryManager* getBatteryManager();
     bool getIsCharging();
     void setIsCharging(bool charging);
-
     double getBatteryLevel();
     void setBatteryLevel(double batt);
-
     unsigned int cycleBacklight();
     void setBrightness(unsigned int brightness);
+
+    unsigned int getNumReconnections();
+    void incNumReconnections();
 
 private:
     class Impl;

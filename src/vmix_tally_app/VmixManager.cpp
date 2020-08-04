@@ -1,5 +1,14 @@
-#define ESP32
+#include "VmixManager.h"
 
+// hardware
+#define ESP32
+#include <M5StickC.h>
+#include <WiFi.h>
+
+// libraries
+#include <string>
+
+// constants
 #define VMIX_API_SUBSCRIBE_TALLY "SUBSCRIBE TALLY\r\n"
 #define VMIX_API_SUBSCRIBE_TALLY_RESPONSE_PREFIX "SUBSCRIBE OK TALLY Subscribed"
 #define VMIX_API_GET_TALLY "TALLY\r\n"
@@ -8,34 +17,22 @@
 #define VMIX_API_FUNCTION_QUICKPLAY_INPUT "FUNCTION QuickPlay Input=%d\r\n"
 #define VMIX_API_FUNCTION_QUICKPLAY_INPUT_RESPONSE "FUNCTION OK COMPLETED"
 
-#include "VmixManager.h"
-
-#include <M5StickC.h>
-#include <WiFi.h>
-#include <string>
-
 struct VmixManager::Impl
 {
-    Impl()
-    {
-    }
+    Impl() { }
 
-    ~Impl()
-    {
-    }
+    ~Impl() { }
 
     WiFiClient *_vmix_client;
     String _lastTallyResponse;
     unsigned short _currentTally;
 };
 
-VmixManager::VmixManager() : _pimpl(new Impl())
-{
-}
+VmixManager::VmixManager() : _pimpl(new Impl()) { }
 
 VmixManager::~VmixManager()
 {
-    _pimpl->_vmix_client = 0;
+    delete _pimpl->_vmix_client; 
 }
 
 void VmixManager::begin()

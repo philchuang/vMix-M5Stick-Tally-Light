@@ -1,8 +1,9 @@
-#define ESP32
-
-// #include <Wire.h>
-#include <M5StickC.h>
 #include "OrientationManager.h"
+
+// hardware
+#define ESP32
+#include <M5StickC.h>
+#include <AXP192.h>
 
 struct OrientationManager::Impl
 {

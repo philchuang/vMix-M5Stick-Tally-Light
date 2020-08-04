@@ -1,25 +1,30 @@
-#define ESP32
+#include "AppContext.h"
 
+// hardware
+#define ESP32
+#include <M5StickC.h>
+
+// libraries
+#include <stdio.h>
+#include <string>
+
+// app
+#include "AppSettings.h"
+#include "AppSettingsManager.h"
+#include "BatteryManager.h"
+#include "OrientationManager.h"
+#include "WifiManager.h"
+#include "VmixManager.h"
+
+// constants
 #define EEPROM_SIZE 512
 #define APP_ROTATION_THRESHOLD 0.8f
-
 // APPSETTINGS_SIZE * MAX_SETTINGS_NR cannot exceed EEPROM_SIZE
 #ifdef SETTINGS1_WIFI_SSID
 #define MAX_SETTINGS_NR 2
 #else
 #define MAX_SETTINGS_NR 1
 #endif
-
-#include "AppContext.h"
-#include <stdio.h>
-#include <string>
-#include <M5StickC.h>
-#include "AppSettings.h"
-#include "AppSettingsManager.h"
-#include "WifiManager.h"
-#include "VmixManager.h"
-#include "OrientationManager.h"
-#include "BatteryManager.h"
 
 struct AppContext::Impl
 {
@@ -31,19 +36,24 @@ struct AppContext::Impl
     {
     }
 
-    AppSettings *_appSettings;
-    unsigned short _appSettingsIdx;
     AppSettingsManager *_appSettingsMgr;
+    unsigned short _appSettingsIdx;
+    AppSettings *_appSettings;
+
+    WifiManager *_wifiMgr;
     bool _isWifiConnected;
+
+    VmixManager *_vmixMgr;
     bool _isVmixConnected;
     char _tallyState;
-    unsigned int _numReconnections;
+
+    OrientationManager *_orientationMgr;
+
+    BatteryManager *_batteryMgr;
     bool _isCharging;
     double _batteryLevel;
-    OrientationManager *_orientationMgr;
-    BatteryManager *_batteryMgr;
-    WifiManager *_wifiMgr;
-    VmixManager *_vmixMgr;
+
+    unsigned int _numReconnections;
 };
 
 AppContext::AppContext()
@@ -53,33 +63,43 @@ AppContext::AppContext()
 
 AppContext::~AppContext()
 {
-    delete _pimpl->_appSettings;
+    _pimpl->_appSettingsMgr->~AppSettingsManager();
     delete _pimpl->_appSettingsMgr;
+    delete _pimpl->_appSettings;
+    _pimpl->_wifiMgr->~WifiManager();
     delete _pimpl->_wifiMgr;
+    _pimpl->_vmixMgr->~VmixManager();
     delete _pimpl->_vmixMgr;
+    _pimpl->_orientationMgr->~OrientationManager();
     delete _pimpl->_orientationMgr;
+    _pimpl->_batteryMgr->~BatteryManager();
     delete _pimpl->_batteryMgr;
 };
 
 void AppContext::begin()
 {
-    auto orientationMgr = OrientationManager(APP_ROTATION_THRESHOLD);
-    orientationMgr.begin();
-    _pimpl->_orientationMgr = &orientationMgr;
     auto settingsMgr = AppSettingsManager(EEPROM_SIZE, MAX_SETTINGS_NR);
     settingsMgr.begin();
     _pimpl->_appSettingsMgr = &settingsMgr;
+
     auto wifi = WifiManager();
     _pimpl->_wifiMgr = &wifi;
+
     auto vmix = VmixManager();
     _pimpl->_vmixMgr = &vmix;
+
+    auto orientationMgr = OrientationManager(APP_ROTATION_THRESHOLD);
+    orientationMgr.begin();
+    _pimpl->_orientationMgr = &orientationMgr;
+
     auto batt = BatteryManager();
+    batt.begin();
     _pimpl->_batteryMgr = &batt;
 }
 
-bool AppContext::getOrientation()
+AppSettingsManager *AppContext::getSettingsManager()
 {
-    return _pimpl->_orientationMgr->getOrientation();
+    return _pimpl->_appSettingsMgr;
 }
 
 unsigned short AppContext::getSettingsIdx()
@@ -90,11 +110,6 @@ unsigned short AppContext::getSettingsIdx()
 unsigned short AppContext::getNumSettings()
 {
     return _pimpl->_appSettingsMgr->getNumSettings();
-}
-
-AppSettingsManager* AppContext::getSettingsManager()
-{
-    return _pimpl->_appSettingsMgr;
 }
 
 AppSettings *AppContext::getSettings()
@@ -121,6 +136,7 @@ WifiManager *AppContext::getWifiManager()
     return _pimpl->_wifiMgr;
 }
 
+// TODO replace with call to isAlive()?
 bool AppContext::getIsWifiConnected()
 {
     return _pimpl->_isWifiConnected;
@@ -136,6 +152,7 @@ VmixManager *AppContext::getVmixManager()
     return _pimpl->_vmixMgr;
 }
 
+// TODO replace with call to isAlive()?
 bool AppContext::getIsVmixConnected()
 {
     return _pimpl->_isVmixConnected;
@@ -156,16 +173,22 @@ void AppContext::setTallyState(char state)
     _pimpl->_tallyState = state;
 }
 
-unsigned int AppContext::getNumReconnections()
+OrientationManager *AppContext::getOrientationManager()
 {
-    return _pimpl->_numReconnections;
+    return _pimpl->_orientationMgr;
 }
 
-void AppContext::incNumReconnections()
+bool AppContext::getOrientation()
 {
-    _pimpl->_numReconnections++;
+    return _pimpl->_orientationMgr->getOrientation();
 }
 
+BatteryManager *AppContext::getBatteryManager()
+{
+    return _pimpl->_batteryMgr;
+}
+
+// TODO replace with call to isCharging()?
 bool AppContext::getIsCharging()
 {
     return _pimpl->_isCharging;
@@ -176,6 +199,7 @@ void AppContext::setIsCharging(bool charging)
     _pimpl->_isCharging = charging;
 }
 
+// TODO replace with call to getBatteryLevel()?
 double AppContext::getBatteryLevel()
 {
     return _pimpl->_batteryLevel;
@@ -186,12 +210,22 @@ void AppContext::setBatteryLevel(double battery)
     _pimpl->_batteryLevel = battery;
 }
 
-void AppContext::setBrightness(unsigned int brightness)
-{
-    _pimpl->_batteryMgr.setBrightness(brightness);
-}
-
 unsigned int AppContext::cycleBacklight()
 {
     return _pimpl->_batteryMgr->cycleBacklight();
+}
+
+void AppContext::setBrightness(unsigned int brightness)
+{
+    _pimpl->_batteryMgr->setBrightness(brightness);
+}
+
+unsigned int AppContext::getNumReconnections()
+{
+    return _pimpl->_numReconnections;
+}
+
+void AppContext::incNumReconnections()
+{
+    _pimpl->_numReconnections++;
 }

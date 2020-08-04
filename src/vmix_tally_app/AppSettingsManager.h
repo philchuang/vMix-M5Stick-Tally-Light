@@ -1,9 +1,10 @@
 /* AppSettingsManager.h - class that manages settings serialization for the vMixTallyApp.
  */
 
-#ifndef AppSettingsManager_h
-#define AppSettingsManager_h
+#ifndef APPSETTINGSMANAGER_H
+#define APPSETTINGSMANAGER_H
 
+// app
 #include "AppSettings.h"
 
 class AppSettingsManager
@@ -13,6 +14,7 @@ public:
     ~AppSettingsManager();
     
     void begin();
+    
     AppSettings load(unsigned short settingsIdx);
     void save(unsigned short settingsIdx, AppSettings *settings);
     void clear(unsigned short settingsIdx);

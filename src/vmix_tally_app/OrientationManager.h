@@ -1,14 +1,8 @@
 #define LANDSCAPE 0
 #define PORTRAIT  1
 
-#ifndef OrientationManager_h
-#define OrientationManager_h
-
-#define ESP32
-
-// #include <Wire.h>
-#include <M5StickC.h>
-#include <AXP192.h>
+#ifndef ORIENTATIONMANAGER_H
+#define ORIENTATIONMANAGER_H
 
 class OrientationManager
 {

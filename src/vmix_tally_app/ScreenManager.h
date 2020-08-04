@@ -1,11 +1,14 @@
 /* ScreenManager.h - class that handles screen rendering
  */
 
-#ifndef ScreenManager_h
-#define ScreenManager_h
+#ifndef SCREENMANAGER_H
+#define SCREENMANAGER_H
 
-#include <PinButton.h>
+// libraries
 #include <Callback.h>
+#include <PinButton.h>
+
+// app
 #include "AppContext.h"
 #include "Screen.h"
 

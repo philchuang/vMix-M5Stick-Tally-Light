@@ -1,13 +1,13 @@
-#ifndef SPLASHSCREEN_H
-#define SPLASHSCREEN_H
-
+// hardware
 #define ESP32
-
-#include "Screen.h"
-
 #include <M5StickC.h>
+
+// libraries
 #include <PinButton.h>
+
+// app
 #include "AppContext.h"
+#include "Screen.h"
 
 class SplashScreen : public Screen
 {
@@ -39,6 +39,3 @@ public:
         // does nothing
     }
 };
-
-
-#endif

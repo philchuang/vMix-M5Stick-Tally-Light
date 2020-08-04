@@ -1,21 +1,21 @@
-#ifndef CONNSCREEN_CPP
-#define CONNSCREEN_CPP
+// hardware
+#define ESP32
+#include <M5StickC.h>
 
+// libraries
+#include <PinButton.h>
+
+// app
+#include "AppContext.h"
+#include "Screen.h"
+#include "VmixManager.h"
+#include "WifiManager.h"
+
+// constants
 #define NUM_WAITS 10
 #define WAIT_INTERVAL_MS 1000
-
 #define WIFI_ERROR "Could not connect to wifi!"
 #define VMIX_ERROR "Could not connect to vMix!"
-
-#define ESP32
-
-#include "Screen.h"
-
-#include <M5StickC.h>
-#include <PinButton.h>
-#include "AppContext.h"
-#include "WifiManager.h"
-#include "VmixManager.h"
 
 class ConnectingScreen : public Screen
 {
@@ -28,8 +28,8 @@ public:
 
     ~ConnectingScreen()
     {
-        this->_wifiMgr = 0;
-        this->_vmixMgr = 0;
+        delete this->_wifiMgr;
+        delete this->_vmixMgr;
     }
 
     unsigned int getId() { return SCREEN_CONN; }
@@ -168,10 +168,6 @@ private:
         return true;
     }
 
-    void settings_swap()
-    {
-    }
-
     void restart()
     {
         Serial.println();
@@ -189,5 +185,3 @@ private:
     WifiManager *_wifiMgr;
     VmixManager *_vmixMgr;
 };
-
-#endif

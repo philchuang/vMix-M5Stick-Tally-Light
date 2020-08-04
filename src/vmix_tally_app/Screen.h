@@ -4,16 +4,16 @@
 #define SCREEN_TALLY    3u
 #define SCREEN_SETTINGS 4u
 
-#define LANDSCAPE 0
-#define PORTRAIT  1
-
 #ifndef SCREEN_H
 #define SCREEN_H
 
+// libraries
 #include <PinButton.h>
 #include <Callback.h>
-#include "Colors.cpp"
+
+// app
 #include "AppContext.h"
+#include "Colors.h"
 
 class Screen
 {
@@ -27,7 +27,7 @@ public:
     Signal<unsigned short> sendScreenChange;
     Signal<const char *> sendShowFatalErrorScreen;
 
-    void unregister()
+    virtual void unregister()
     {
         this->sendOrientationChange.~Signal();
         this->sendCycleBacklight.~Signal();

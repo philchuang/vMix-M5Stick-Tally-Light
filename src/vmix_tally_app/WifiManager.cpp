@@ -1,19 +1,15 @@
-#define ESP32
-
 #include "WifiManager.h"
 
+// hardware
+#define ESP32
 #include <M5StickC.h>
 #include <WiFi.h>
 
 struct WifiManager::Impl
 {
-    Impl()
-    {
-    }
+    Impl() { }
 
-    ~Impl()
-    {
-    }
+    ~Impl() { }
 };
 
 WifiManager::WifiManager() : _pimpl(new Impl())

@@ -1,17 +1,16 @@
-#ifndef TALLYSCREEN_CPP
-#define TALLYSCREEN_CPP
-
+// hardware
 #define ESP32
-#define LED_BUILTIN 10
-
-#include "Screen.h"
-
-#include <string>
-#include <Callback.h>
 #include <M5StickC.h>
+
+// libraries
+#include <Callback.h>
 #include <PinButton.h>
-#include "OrientationManager.h"
+#include <string>
+
+// app
 #include "AppContext.h"
+#include "OrientationManager.h"
+#include "Screen.h"
 #include "VmixManager.h"
 
 class TallyScreen : public Screen
@@ -241,18 +240,14 @@ private:
 
     void setLedOn(bool isOn)
     {
-        if (isOn)
-            digitalWrite(LED_BUILTIN, LOW);
-        else
-            digitalWrite(LED_BUILTIN, HIGH);
+        this->_context->getBatteryManager()->setLedOn(isOn);
     }
 
     bool _isHighVizMode;
     unsigned short _orientation;
+    bool _isShowing;
+
     VmixManager *_vmix;
     unsigned char _tallyState;
     unsigned short _tally;
-    bool _isShowing;
 };
-
-#endif
