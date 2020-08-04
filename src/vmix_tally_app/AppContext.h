@@ -55,6 +55,7 @@ public:
     void setBatteryLevel(double batt);
 
     unsigned int cycleBacklight();
+    void setBrightness(unsigned int brightness);
 
 private:
     class Impl;

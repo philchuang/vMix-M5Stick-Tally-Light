@@ -186,6 +186,11 @@ void AppContext::setBatteryLevel(double battery)
     _pimpl->_batteryLevel = battery;
 }
 
+void AppContext::setBrightness(unsigned int brightness)
+{
+    _pimpl->_batteryMgr.setBrightness(brightness);
+}
+
 unsigned int AppContext::cycleBacklight()
 {
     return _pimpl->_batteryMgr->cycleBacklight();
