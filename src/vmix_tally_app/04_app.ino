@@ -1,18 +1,24 @@
-// intellisense support only, comment out before building
-// hardware
-#define ESP32
-#include <M5StickC.h>
+/* 
+ * the core of the application: setup() and loop()
+ */
 
-// libraries
-#include "AppContext.h"
+// ----- intellisense support only, comment out before building -----
+// // hardware
+// #define ESP32
+// #include <M5StickC.h>
 
-// constants
-#define HIGH_VIZ_MODE 1
-#define CLEAR_SETTINGS_ON_LOAD false
+// // libraries
+// #include "AppContext.h"
+// #include "AppSettingsManager.h"
+
+// // constants
+// #define LED_BUILTIN 10
+// #define HIGH_VIZ_MODE 1
+// #define CLEAR_SETTINGS_ON_LOAD false
+// ----- intellisense support only, comment out before building -----
 
 // globals
 AppContext *_context;
-// intellisense support only, comment out before building
 
 void setup()
 {
@@ -43,9 +49,20 @@ void setup()
 
     if (CLEAR_SETTINGS_ON_LOAD)
     {
-        // TODO implement
-        // settings_clear();
+        Serial.println("Clearing EEPROM...");
+
+        auto settingsMgr = _context->getSettingsManager();
+
+        for (auto it = 0; it < settingsMgr->getNumSettings(); ++it)
+        {
+            settingsMgr.clear(settingsIdx);
+        }
+        settingsMgr.saveUptimeInfo(0, 0);
+
+        Serial.println("EEPROM cleared.");
     }
+
+    _context->scree
 }
 
 void loop()

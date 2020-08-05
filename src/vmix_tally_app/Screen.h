@@ -3,6 +3,7 @@
 #define SCREEN_CONN     2u
 #define SCREEN_TALLY    3u
 #define SCREEN_SETTINGS 4u
+#define MAX_SCREENS     4u
 
 #ifndef SCREEN_H
 #define SCREEN_H

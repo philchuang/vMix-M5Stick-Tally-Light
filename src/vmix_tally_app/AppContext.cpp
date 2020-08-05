@@ -13,6 +13,8 @@
 #include "AppSettingsManager.h"
 #include "BatteryManager.h"
 #include "OrientationManager.h"
+#include "Screen.h"
+#include "ScreenManager.h"
 #include "WifiManager.h"
 #include "VmixManager.h"
 
@@ -42,6 +44,7 @@ struct AppContext::Impl
 
     WifiManager *_wifiMgr;
     bool _isWifiConnected;
+    unsigned int _numReconnections;
 
     VmixManager *_vmixMgr;
     bool _isVmixConnected;
@@ -53,7 +56,7 @@ struct AppContext::Impl
     bool _isCharging;
     double _batteryLevel;
 
-    unsigned int _numReconnections;
+    ScreenManager *_screenMgr;
 };
 
 AppContext::AppContext()
@@ -95,6 +98,11 @@ void AppContext::begin()
     auto batt = BatteryManager();
     batt.begin();
     _pimpl->_batteryMgr = &batt;
+
+    auto screen = ScreenManager(&this, MAX_SCREENS);
+    screen.begin();
+    // TODO add screens
+    _pimpl->_screenMgr = &screen;
 }
 
 AppSettingsManager *AppContext::getSettingsManager()
@@ -145,6 +153,16 @@ bool AppContext::getIsWifiConnected()
 void AppContext::setIsWifiConnected(bool connected)
 {
     _pimpl->_isWifiConnected = connected;
+}
+
+unsigned int AppContext::getNumReconnections()
+{
+    return _pimpl->_numReconnections;
+}
+
+void AppContext::incNumReconnections()
+{
+    _pimpl->_numReconnections++;
 }
 
 VmixManager *AppContext::getVmixManager()
@@ -220,12 +238,7 @@ void AppContext::setBrightness(unsigned int brightness)
     _pimpl->_batteryMgr->setBrightness(brightness);
 }
 
-unsigned int AppContext::getNumReconnections()
+ScreenManager *AppContext::getScreenManager()
 {
-    return _pimpl->_numReconnections;
-}
-
-void AppContext::incNumReconnections()
-{
-    _pimpl->_numReconnections++;
+    return _pimpl->_screenMgr;
 }

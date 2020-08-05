@@ -31,6 +31,9 @@ public:
     bool getIsWifiConnected();
     void setIsWifiConnected(bool connected);
 
+    unsigned int getNumReconnections();
+    void incNumReconnections();
+
     VmixManager* getVmixManager();
     bool getIsVmixConnected();
     void setIsVmixConnected(bool connected);
@@ -48,8 +51,7 @@ public:
     unsigned int cycleBacklight();
     void setBrightness(unsigned int brightness);
 
-    unsigned int getNumReconnections();
-    void incNumReconnections();
+    ScreenManager* getScreenManager();
 
 private:
     class Impl;

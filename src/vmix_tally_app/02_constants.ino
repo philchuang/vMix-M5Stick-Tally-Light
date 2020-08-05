@@ -1,3 +1,9 @@
+/* 
+ * contains global constants
+ */
+
+#define LED_BUILTIN 10
+
 // #define SCREEN_ERROR    0u
 // #define SCREEN_SPLASH   1u
 // #define SCREEN_CONN     2u
