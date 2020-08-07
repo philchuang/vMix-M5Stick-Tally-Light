@@ -1,0 +1,17 @@
+/* 
+ * contains default network configuration
+ */
+
+// HOME
+#define SETTINGS0_WIFI_SSID "***REMOVED***"
+#define SETTINGS0_WIFI_PASS "***REMOVED***"
+#define SETTINGS0_VMIX_ADDR "***REMOVED***" // or hostname
+#define SETTINGS0_VMIX_PORT 8099 // default TCP API port
+#define SETTINGS0_TALLY_NR 1 // initial tally number
+
+***REMOVED***
+#define SETTINGS1_WIFI_SSID "***REMOVED***"
+#define SETTINGS1_WIFI_PASS "***REMOVED***"
+#define SETTINGS1_VMIX_ADDR "***REMOVED***" // or hostname
+#define SETTINGS1_VMIX_PORT 8099 // default TCP API port
+#define SETTINGS1_TALLY_NR 1 // initial tally number

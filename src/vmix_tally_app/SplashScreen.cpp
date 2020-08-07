@@ -13,7 +13,7 @@ class SplashScreen : public Screen
 {
 public:
     SplashScreen(AppContext &context) : Screen(context) {}
-    ~SplashScreen();
+    ~SplashScreen() { }
 
     unsigned int getId() { return SCREEN_SPLASH; }
 

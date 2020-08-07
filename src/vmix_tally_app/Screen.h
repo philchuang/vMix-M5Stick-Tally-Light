@@ -20,7 +20,7 @@ class Screen
 {
 public:
     Screen(AppContext &context) : _context(&context) {}
-    ~Screen();
+    ~Screen() {}
 
     Signal<unsigned short> sendOrientationChange;
     Signal<unsigned long> sendCycleBacklight;
