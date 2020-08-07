@@ -86,12 +86,12 @@ void OrientationManager::setOrientation(bool isPortrait)
     _pimpl->_isPortrait = isPortrait;
 }
 
-byte OrientationManager::getRotation()
+short OrientationManager::getRotation()
 {
     return M5.Lcd.getRotation();
 }
 
-void OrientationManager::setRotation(byte rotation)
+void OrientationManager::setRotation(short rotation)
 {
     if (this->getRotation() == rotation)
     {

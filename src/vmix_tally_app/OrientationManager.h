@@ -15,8 +15,8 @@ public:
     unsigned int checkRotationChange(float threshold);
     bool getOrientation();
     void setOrientation(bool isPortrait);
-    byte getRotation();
-    void setRotation(byte rotation);
+    short getRotation();
+    void setRotation(short rotation);
 
 private:
     class Impl;

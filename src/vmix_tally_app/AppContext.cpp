@@ -14,7 +14,7 @@
 #include "BatteryManager.h"
 #include "OrientationManager.h"
 #include "Screen.h"
-#include "ScreenManager.h"
+// #include "ScreenManager.h"
 #include "WifiManager.h"
 #include "VmixManager.h"
 
@@ -56,7 +56,7 @@ struct AppContext::Impl
     bool _isCharging;
     double _batteryLevel;
 
-    ScreenManager *_screenMgr;
+    // ScreenManager *_screenMgr;
 };
 
 AppContext::AppContext()
@@ -99,10 +99,10 @@ void AppContext::begin()
     batt.begin();
     _pimpl->_batteryMgr = &batt;
 
-    auto screen = ScreenManager(&this, MAX_SCREENS);
-    screen.begin();
-    // TODO add screens
-    _pimpl->_screenMgr = &screen;
+    // auto screen = ScreenManager(&this, MAX_SCREENS);
+    // screen.begin();
+    // // TODO add screens
+    // _pimpl->_screenMgr = &screen;
 }
 
 AppSettingsManager *AppContext::getSettingsManager()
@@ -233,12 +233,12 @@ unsigned int AppContext::cycleBacklight()
     return _pimpl->_batteryMgr->cycleBacklight();
 }
 
-void AppContext::setBrightness(unsigned int brightness)
+void AppContext::setBacklight(unsigned int brightness)
 {
-    _pimpl->_batteryMgr->setBrightness(brightness);
+    _pimpl->_batteryMgr->setBacklight(brightness);
 }
 
-ScreenManager *AppContext::getScreenManager()
-{
-    return _pimpl->_screenMgr;
-}
+// ScreenManager *AppContext::getScreenManager()
+// {
+//     return _pimpl->_screenMgr;
+// }

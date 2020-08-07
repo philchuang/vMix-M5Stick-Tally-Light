@@ -21,7 +21,7 @@ public:
     Signal<unsigned short> sendOrientationChange;
 
     void begin();
-    void add(Screen &screen);
+    void add(Screen *screen);
     Screen *getCurrent();
     void show(unsigned short screenId);
     void refresh();

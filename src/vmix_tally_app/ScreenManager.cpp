@@ -2,6 +2,7 @@
 
 // hardware
 #define ESP32
+#include <Arduino.h>
 #include <M5StickC.h>
 
 // libraries
@@ -71,21 +72,21 @@ void ScreenManager::begin()
 {
 }
 
-void ScreenManager::add(Screen &screen)
+void ScreenManager::add(Screen *screen)
 {
     MethodSlot<ScreenManager, unsigned short> orientationChangeListener(this, &ScreenManager::onOrientationChange);
-    screen.sendOrientationChange.attach(orientationChangeListener);
+    screen->sendOrientationChange.attach(orientationChangeListener);
     MethodSlot<ScreenManager, unsigned long> cycleBacklightListener(this, &ScreenManager::onCycleBacklight);
-    screen.sendCycleBacklight.attach(cycleBacklightListener);
+    screen->sendCycleBacklight.attach(cycleBacklightListener);
     MethodSlot<ScreenManager, Colors> colorChangeListener(this, &ScreenManager::onColorChange);
-    screen.sendColorChange.attach(colorChangeListener);
+    screen->sendColorChange.attach(colorChangeListener);
     MethodSlot<ScreenManager, unsigned short> screenChangeListener(this, &ScreenManager::show);
-    screen.sendScreenChange.attach(screenChangeListener);
+    screen->sendScreenChange.attach(screenChangeListener);
     MethodSlot<ScreenManager, const char *> showFatalErrorScreenListener(this, &ScreenManager::onShowFatalErrorScreen);
-    screen.sendShowFatalErrorScreen.attach(showFatalErrorScreenListener);
-    MethodSlot<Screen, unsigned short> onScreenChangedListener(&screen, &Screen::onScreenChanged);
+    screen->sendShowFatalErrorScreen.attach(showFatalErrorScreenListener);
+    MethodSlot<Screen, unsigned short> onScreenChangedListener(screen, &Screen::onScreenChanged);
     _pimpl->_sendScreenChanged.attach(onScreenChangedListener);
-    _pimpl->_screens[screen.getId()] = &screen;
+    _pimpl->_screens[screen->getId()] = screen;
 }
 
 void ScreenManager::onOrientationChange(unsigned short orientation)

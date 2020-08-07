@@ -49,9 +49,9 @@ public:
     double getBatteryLevel();
     void setBatteryLevel(double batt);
     unsigned int cycleBacklight();
-    void setBrightness(unsigned int brightness);
+    void setBacklight(unsigned int brightness);
 
-    ScreenManager* getScreenManager();
+    // ScreenManager* getScreenManager();
 
 private:
     class Impl;
