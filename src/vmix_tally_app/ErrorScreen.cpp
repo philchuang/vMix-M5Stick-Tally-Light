@@ -13,7 +13,7 @@ class ErrorScreen : public Screen
 {
 public:
     ErrorScreen(AppContext &context) : Screen(context) {}
-    ~ErrorScreen();
+    ~ErrorScreen() {}
 
     void setMessage(const char *message)
     {
@@ -62,7 +62,7 @@ public:
         M5.Lcd.println("Press side button to switch settings.");
     }
 
-    void handleInput(unsigned long timestamp, PinButton m5Btn, PinButton sideBtn)
+    void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
     {
         // m5 button single click to retry
         if (m5Btn.isSingleClick())

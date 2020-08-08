@@ -142,7 +142,26 @@ void initScreens()
 {
     auto screenMgr = ScreenManager(*_context, MAX_SCREENS);
     _screenMgr = &screenMgr;
+
+    Screen *screen;
+
+    ErrorScreen errScr(*_context);
+    screen = &errScr;
+    _screenMgr->add(screen);
+
     SplashScreen splash(*_context);
-    Screen *screen = &splash;
+    screen = &splash;
+    _screenMgr->add(screen);
+
+    ConnectingScreen connect(*_context);
+    screen = &connect;
+    _screenMgr->add(screen);
+
+    TallyScreen tally(*_context, HIGH_VIZ_MODE);
+    screen = &tally;
+    _screenMgr->add(screen);
+
+    SettingsScreen settings(*_context);
+    screen = &settings;
     _screenMgr->add(screen);
 }
