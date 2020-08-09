@@ -1,4 +1,4 @@
-// copy to 01_config.ino and update with your configuration
+// copy to AppSettingsDefaults.h and update with your configuration
 /* 
  * contains default network configuration
  */

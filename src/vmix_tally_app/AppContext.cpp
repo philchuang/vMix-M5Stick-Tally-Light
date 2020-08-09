@@ -2,18 +2,25 @@
 
 // hardware
 #define ESP32
+#include <Arduino.h>
 #include <M5StickC.h>
 
 // libraries
 #include <stdio.h>
+#include <vector>
 #include <string>
+#include <Callback.h>
 
 // app
 #include "AppSettings.h"
+#include "AppSettingsDefaults.h"
 #include "AppSettingsManager.h"
 #include "BatteryManager.h"
+#include "Constants.h"
+#include "Configuration.h"
 #include "OrientationManager.h"
 #include "Screen.h"
+#include "SlotLoopEvent.h"
 // #include "ScreenManager.h"
 #include "WifiManager.h"
 #include "VmixManager.h"
@@ -55,8 +62,15 @@ struct AppContext::Impl
     BatteryManager *_batteryMgr;
     bool _isCharging;
     double _batteryLevel;
+    std::vector<SlotLoopEvent> _loopEvents;
 
-    // ScreenManager *_screenMgr;
+    void printSettingsDebug()
+    {
+        Serial.printf("SSID : %s\n", _appSettings->getWifiSsid());
+        Serial.printf("Pass : %s\n", _appSettings->getWifiPassphrase());
+        Serial.printf("vMix : %s\n", _appSettings->getVmixAddressWithPort());
+        Serial.printf("Tally: %d\n", _appSettings->getVmixTally());
+    }
 };
 
 AppContext::AppContext()
@@ -103,6 +117,25 @@ void AppContext::begin()
     // screen.begin();
     // // TODO add screens
     // _pimpl->_screenMgr = &screen;
+
+    // set up polling events
+    MethodSlot<AppContext, unsigned long> isChargingChecker(this, &AppContext::checkIsCharging);
+    auto temp = SlotLoopEvent(isChargingChecker, M5_CHARGING_MS);
+    _pimpl->_loopEvents.push_back(temp);
+
+    MethodSlot<AppContext, unsigned long> batteryLevelChecker(this, &AppContext::checkBatteryLevel);
+    temp = SlotLoopEvent(batteryLevelChecker, M5_BATTERYLEVEL_MS);
+    _pimpl->_loopEvents.push_back(temp);
+
+    MethodSlot<AppContext, unsigned long> orientationChecker(this, &AppContext::checkOrientation);
+    temp = SlotLoopEvent(orientationChecker, APP_ORIENTATION_MS);
+    _pimpl->_loopEvents.push_back(temp);
+
+    // loopEvents.push_back(LoopEvent(main_checkOrientation, APP_ORIENTATION_MS));
+    // loopEvents.push_back(*screenRefreshCheck);
+    // loopEvents.push_back(LoopEvent(main_handleButtons, 0));
+    // loopEvents.push_back(LoopEvent(main_pollVmix, VMIX_RESPONSE_MS));
+    // loopEvents.push_back(LoopEvent(main_pollKeepAlive, VMIX_KEEPALIVE_MS));
 }
 
 AppSettingsManager *AppContext::getSettingsManager()
@@ -127,7 +160,34 @@ AppSettings *AppContext::getSettings()
 
 AppSettings *AppContext::loadSettings(unsigned short settingsIdx)
 {
+    Serial.printf("Loading settings at %d...\n", settingsIdx);
     auto settings = _pimpl->_appSettingsMgr->load(settingsIdx);
+    if (!settings.isValid())
+    {
+        Serial.println("Invalid settings found, using default settings.");
+        if (settingsIdx == 0)
+        {
+            settings.setWifiSsid(SETTINGS0_WIFI_SSID);
+            settings.setWifiPassphrase(SETTINGS0_WIFI_PASS);
+            settings.setVmixAddress(SETTINGS0_VMIX_ADDR);
+            settings.setVmixPort(SETTINGS0_VMIX_PORT);
+            settings.setVmixTally(SETTINGS0_TALLY_NR);
+        }
+#ifdef SETTINGS1_WIFI_SSID
+        else if (settingsIdx == 1)
+        {
+            settings.setWifiSsid(SETTINGS1_WIFI_SSID);
+            settings.setWifiPassphrase(SETTINGS1_WIFI_PASS);
+            settings.setVmixAddress(SETTINGS1_VMIX_ADDR);
+            settings.setVmixPort(SETTINGS1_VMIX_PORT);
+            settings.setVmixTally(SETTINGS1_TALLY_NR);
+        }
+#endif
+        _pimpl->_appSettingsMgr->save(settingsIdx, &settings);
+        Serial.println("Default settings:");
+        _pimpl->printSettingsDebug();
+    }
+
     _pimpl->_appSettings = &settings;
     _pimpl->_appSettingsIdx = settingsIdx;
     return _pimpl->_appSettings;
@@ -242,3 +302,21 @@ void AppContext::setBacklight(unsigned int brightness)
 // {
 //     return _pimpl->_screenMgr;
 // }
+
+void AppContext::checkIsCharging(unsigned long timestamp)
+{
+    this->setIsCharging(this->getIsCharging());
+}
+
+void AppContext::checkBatteryLevel(unsigned long timestamp)
+{
+    this->setBatteryLevel(this->getBatteryLevel());
+    if (LOG_BATTERY && _pimpl->_saveUptimeInfo)
+    {
+        this->getSettingsManager()->saveUptimeInfo(millis(), this->getBatteryLevel());
+    }
+}
+
+void AppContext::checkOrientation(unsigned long timestamp)
+{
+}

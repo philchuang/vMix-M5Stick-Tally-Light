@@ -2,6 +2,7 @@
 
 // hardware
 #define ESP32
+#include <Arduino.h>
 #include <M5StickC.h>
 #include <EEPROM.h>
 

@@ -1,3 +1,4 @@
+
 /* 
  * includes
  */
@@ -21,6 +22,8 @@
 #include "AppSettings.h"
 #include "AppSettingsManager.h"
 #include "BatteryManager.h"
+#include "Constants.h"
+#include "Configuration.h"
 #include "LoopEvent.h"
 #include "OrientationManager.h"
 #include "Screen.h"
@@ -36,43 +39,13 @@
 #include "TallyScreen.cpp"
 
 /* 
- * default network configuration
- */
-
-// HOME
-#define SETTINGS0_WIFI_SSID "***REMOVED***"
-#define SETTINGS0_WIFI_PASS "***REMOVED***"
-#define SETTINGS0_VMIX_ADDR "***REMOVED***" // or hostname
-#define SETTINGS0_VMIX_PORT 8099 // default TCP API port
-#define SETTINGS0_TALLY_NR 1 // initial tally number
-
-***REMOVED***
-#define SETTINGS1_WIFI_SSID "***REMOVED***"
-#define SETTINGS1_WIFI_PASS "***REMOVED***"
-#define SETTINGS1_VMIX_ADDR "***REMOVED***" // or hostname
-#define SETTINGS1_VMIX_PORT 8099 // default TCP API port
-#define SETTINGS1_TALLY_NR 1 // initial tally number
-
-/* 
- * global constants
- */
-
-#define LED_BUILTIN 10
-
-/* 
- * global constants that define behavior
- */
-
-#define HIGH_VIZ_MODE 1
-#define CLEAR_SETTINGS_ON_LOAD false
-
-/* 
  * the core of the application: setup() and loop()
  */
 
 // globals
 AppContext *_context;
 ScreenManager *_screenMgr;
+bool _saveUptimeInfo = false; // TEMPORARY
 
 void setup()
 {
@@ -89,6 +62,25 @@ void setup()
     initSettings();
 
     initScreens();
+
+    if (LOG_BATTERY)
+    {
+        if (PREPARE_BATTERY_LOGGING)
+        {
+            _context->getSettingsManager()->saveUptimeInfo(0, 0);
+            _saveUptimeInfo = false;
+        }
+        else
+        {
+            delay(10000);
+        }
+        if (_context->getSettingsManager()->getLastUptime() != 0)
+        {
+            _saveUptimeInfo = false;
+        }
+    }
+
+    _screenMgr->show(SCREEN_SPLASH);
 }
 
 void loop()

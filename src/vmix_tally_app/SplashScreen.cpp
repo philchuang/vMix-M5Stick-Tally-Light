@@ -21,6 +21,7 @@ public:
     {
         this->refresh();
         delay(2000);
+        this->_context->loadSettings(0);
     }
 
     void refresh()

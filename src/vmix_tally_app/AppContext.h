@@ -5,6 +5,7 @@
 #define APPCONTEXT_H
 
 #include "AppSettings.h"
+#include "AppSettingsDefaults.h"
 #include "AppSettingsManager.h"
 #include "BatteryManager.h"
 #include "OrientationManager.h"
@@ -18,40 +19,62 @@ public:
     ~AppContext();
 
     void begin();
-    
-    AppSettingsManager* getSettingsManager();
+
+    AppSettingsManager *getSettingsManager();
     unsigned short getSettingsIdx();
     unsigned short getNumSettings();
-    AppSettings* getSettings();
-    AppSettings* loadSettings(unsigned short settingsIdx);
-    AppSettings* cycleSettings();
+    AppSettings *getSettings();
+    AppSettings *loadSettings(unsigned short settingsIdx);
+    AppSettings *cycleSettings();
     // TODO saveSettings(AppSettings &settings);
 
-    WifiManager* getWifiManager();
+    WifiManager *getWifiManager();
     bool getIsWifiConnected();
     void setIsWifiConnected(bool connected);
 
     unsigned int getNumReconnections();
     void incNumReconnections();
 
-    VmixManager* getVmixManager();
+    VmixManager *getVmixManager();
     bool getIsVmixConnected();
     void setIsVmixConnected(bool connected);
     char getTallyState();
     void setTallyState(char state);
 
-    OrientationManager* getOrientationManager();
+    OrientationManager *getOrientationManager();
     bool getOrientation();
 
-    BatteryManager* getBatteryManager();
+// TODO redo all these get/sets - differentiate between last saved state and shortcuts for manager methods
+    BatteryManager *getBatteryManager();
     bool getIsCharging();
-    void setIsCharging(bool charging);
     double getBatteryLevel();
-    void setBatteryLevel(double batt);
     unsigned int cycleBacklight();
     void setBacklight(unsigned int brightness);
 
     // ScreenManager* getScreenManager();
+
+protected:
+    void checkIsCharging(unsigned long timestamp)
+    {
+        this->setIsCharging(this->getIsCharging());
+    }
+
+    void setIsCharging(bool charging);
+
+    void checkBatteryLevel(unsigned long timestamp)
+    {
+        this->setBatteryLevel(this->getBatteryLevel());
+        if (LOG_BATTERY && saveUptimeInfo)
+        {
+            settingsMgr.saveUptimeInfo(millis(), currentBatteryLevel);
+        }
+    }
+
+    void setBatteryLevel(double batt);
+
+    void checkOrientation(unsigned long timestamp)
+    {
+    }
 
 private:
     class Impl;

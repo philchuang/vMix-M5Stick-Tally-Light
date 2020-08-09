@@ -14,7 +14,7 @@
 // app
 #include "AppContext.h"
 #include "ErrorScreen.cpp"
-#include "LoopEvent.h"
+#include "SlotLoopEvent.h"
 #include "Screen.h"
 
 // constants

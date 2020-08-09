@@ -1,5 +1,6 @@
 // hardware
 #define ESP32
+#include <Arduino.h>
 #include <M5StickC.h>
 
 // libraries
@@ -166,19 +167,6 @@ private:
         this->_vmixMgr->sendSubscribeTally();
 
         return true;
-    }
-
-    void restart()
-    {
-        Serial.println();
-        Serial.println();
-        Serial.println("------------");
-        Serial.println("RESTART");
-        Serial.println("------------");
-        Serial.println();
-        Serial.println();
-
-        show();
     }
 
     // local pointers to connection state
