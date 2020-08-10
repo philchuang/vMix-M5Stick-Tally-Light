@@ -13,9 +13,11 @@
 
 // app
 #include "AppContext.h"
+#include "Configuration.h"
 #include "ErrorScreen.cpp"
-#include "SlotLoopEvent.h"
+#include "OrientationManager.h"
 #include "Screen.h"
+#include "SlotLoopEvent.h"
 
 // constants
 #define APP_SCREENREFRESH_MS 10000u
@@ -36,6 +38,7 @@ struct ScreenManager::Impl
     Signal<unsigned short> _sendScreenChanged;
 
     AppContext *_context;
+    OrientationManager *_orientationMgr;
     unsigned int _currentScreen;
     std::vector<Screen *> _screens;
     SlotLoopEvent *_screenRefreshCheck;
@@ -48,9 +51,6 @@ struct ScreenManager::Impl
 ScreenManager::ScreenManager(AppContext &context, unsigned int maxScreens)
     : _pimpl(new Impl(context, maxScreens))
 {
-    MethodSlot<ScreenManager, unsigned long> forceRefreshListener(this, &ScreenManager::pollForceRefresh);
-    auto temp = SlotLoopEvent(forceRefreshListener, APP_SCREENREFRESH_MS);
-    _pimpl->_screenRefreshCheck = &temp;
 }
 
 ScreenManager::~ScreenManager()
@@ -58,7 +58,10 @@ ScreenManager::~ScreenManager()
     this->sendOrientationChange.~Signal();
     _pimpl->_sendScreenChanged.~Signal();
     delete _pimpl->_screenRefreshCheck;
-    
+
+    _pimpl->_orientationMgr->~OrientationManager();
+    delete _pimpl->_orientationMgr;
+
     for (auto it = _pimpl->_screens.begin(); it != _pimpl->_screens.end(); ++it)
     {
         (*it)->unregister();
@@ -70,6 +73,18 @@ ScreenManager::~ScreenManager()
 
 void ScreenManager::begin()
 {
+    MethodSlot<ScreenManager, unsigned long> forceRefreshListener(this, &ScreenManager::pollForceRefresh);
+    auto temp = SlotLoopEvent(forceRefreshListener, APP_SCREENREFRESH_MS);
+    _pimpl->_screenRefreshCheck = &temp;
+
+    auto orientationMgr = OrientationManager(APP_ROTATION_THRESHOLD);
+    orientationMgr.begin();
+    _pimpl->_orientationMgr = &orientationMgr;
+
+    MethodSlot<ScreenManager, unsigned long> orientationChecker(this, &ScreenManager::pollOrientationCheck);
+    temp = SlotLoopEvent(orientationChecker, APP_ORIENTATION_MS);
+    _pimpl->_context->addLoopEvent(&temp);
+
 }
 
 void ScreenManager::add(Screen *screen)
@@ -105,8 +120,8 @@ void ScreenManager::onCycleBacklight(unsigned long timestamp)
     // blit out previous message
     M5.Lcd.setTextColor(_pimpl->_lastBackgroundColor);
     sprintf(brightnessString, "%d%%", _pimpl->_lastBrightness);
-    
-    auto orientation = _pimpl->_context->getOrientation();
+
+    auto orientation = _pimpl->_orientationMgr->getOrientation();
     if (orientation == LANDSCAPE)
     {
         M5.Lcd.drawString(brightnessString, 80, 80, 1);
@@ -173,4 +188,23 @@ void ScreenManager::handleInput(unsigned long timestamp, PinButton &m5Btn, PinBu
 void ScreenManager::pollForceRefresh(unsigned long timestamp)
 {
     this->refresh();
+}
+
+void ScreenManager::pollOrientationCheck(unsigned long timestamp)
+{
+    unsigned int newRotation = _pimpl->_orientationMgr->checkRotationChange();
+
+    if (newRotation != -1)
+    {
+        updateRotation(newRotation);
+    }
+}
+
+void ScreenManager::updateRotation(byte newRotation)
+{
+    if (newRotation != _pimpl->_orientationMgr->getRotation())
+    {
+        _pimpl->_orientationMgr->setRotation(newRotation);
+        this->refresh();
+    }
 }

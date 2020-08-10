@@ -45,6 +45,8 @@
 // globals
 AppContext *_context;
 ScreenManager *_screenMgr;
+PinButton btnM5 = PinButton(37);
+PinButton btnSide = PinButton(39);
 bool _saveUptimeInfo = false; // TEMPORARY
 
 void setup()
@@ -85,6 +87,13 @@ void setup()
 
 void loop()
 {
+    unsigned long timestamp = millis();
+
+    _context->handleLoop(timestamp);
+
+    btnM5.update();
+    btnSide.update();
+    _screenMgr->handleInput(timestamp, btnM5, btnSide);
 }
 
 void initHardware()

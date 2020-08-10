@@ -25,15 +25,13 @@ public:
         this->_nextExecution = nextExecution;
     }
 
-    bool execute(unsigned long timestamp)
+    void execute(unsigned long timestamp)
     {
         if (this->_intervalMs == 0 || timestamp > this->_nextExecution)
         {
             this->_nextExecution = timestamp + this->_intervalMs;
             (*this->_slot)(timestamp);
         }
-
-        return true;
     }
 };
 

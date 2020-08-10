@@ -18,10 +18,8 @@
 #include "BatteryManager.h"
 #include "Constants.h"
 #include "Configuration.h"
-#include "OrientationManager.h"
 #include "Screen.h"
 #include "SlotLoopEvent.h"
-// #include "ScreenManager.h"
 #include "WifiManager.h"
 #include "VmixManager.h"
 
@@ -57,12 +55,13 @@ struct AppContext::Impl
     bool _isVmixConnected;
     char _tallyState;
 
-    OrientationManager *_orientationMgr;
-
     BatteryManager *_batteryMgr;
     bool _isCharging;
     double _batteryLevel;
-    std::vector<SlotLoopEvent> _loopEvents;
+
+    std::vector<SlotLoopEvent *> _loopEvents;
+
+    bool _isErrorFatal;
 
     void printSettingsDebug()
     {
@@ -87,8 +86,6 @@ AppContext::~AppContext()
     delete _pimpl->_wifiMgr;
     _pimpl->_vmixMgr->~VmixManager();
     delete _pimpl->_vmixMgr;
-    _pimpl->_orientationMgr->~OrientationManager();
-    delete _pimpl->_orientationMgr;
     _pimpl->_batteryMgr->~BatteryManager();
     delete _pimpl->_batteryMgr;
 };
@@ -105,37 +102,26 @@ void AppContext::begin()
     auto vmix = VmixManager();
     _pimpl->_vmixMgr = &vmix;
 
-    auto orientationMgr = OrientationManager(APP_ROTATION_THRESHOLD);
-    orientationMgr.begin();
-    _pimpl->_orientationMgr = &orientationMgr;
-
     auto batt = BatteryManager();
     batt.begin();
     _pimpl->_batteryMgr = &batt;
 
-    // auto screen = ScreenManager(&this, MAX_SCREENS);
-    // screen.begin();
-    // // TODO add screens
-    // _pimpl->_screenMgr = &screen;
-
     // set up polling events
     MethodSlot<AppContext, unsigned long> isChargingChecker(this, &AppContext::checkIsCharging);
     auto temp = SlotLoopEvent(isChargingChecker, M5_CHARGING_MS);
-    _pimpl->_loopEvents.push_back(temp);
+    _pimpl->_loopEvents.push_back(&temp);
 
     MethodSlot<AppContext, unsigned long> batteryLevelChecker(this, &AppContext::checkBatteryLevel);
     temp = SlotLoopEvent(batteryLevelChecker, M5_BATTERYLEVEL_MS);
-    _pimpl->_loopEvents.push_back(temp);
+    _pimpl->_loopEvents.push_back(&temp);
 
-    MethodSlot<AppContext, unsigned long> orientationChecker(this, &AppContext::checkOrientation);
-    temp = SlotLoopEvent(orientationChecker, APP_ORIENTATION_MS);
-    _pimpl->_loopEvents.push_back(temp);
+    MethodSlot<AppContext, unsigned long> vmixResponseChecker(this, &AppContext::checkVmixResponse);
+    temp = SlotLoopEvent(vmixResponseChecker, VMIX_RESPONSE_MS);
+    _pimpl->_loopEvents.push_back(&temp);
 
-    // loopEvents.push_back(LoopEvent(main_checkOrientation, APP_ORIENTATION_MS));
-    // loopEvents.push_back(*screenRefreshCheck);
-    // loopEvents.push_back(LoopEvent(main_handleButtons, 0));
-    // loopEvents.push_back(LoopEvent(main_pollVmix, VMIX_RESPONSE_MS));
-    // loopEvents.push_back(LoopEvent(main_pollKeepAlive, VMIX_KEEPALIVE_MS));
+    MethodSlot<AppContext, unsigned long> vmixCnxChecker(this, &AppContext::checkVmixConnection);
+    temp = SlotLoopEvent(vmixCnxChecker, VMIX_KEEPALIVE_MS);
+    _pimpl->_loopEvents.push_back(&temp);
 }
 
 AppSettingsManager *AppContext::getSettingsManager()
@@ -251,16 +237,6 @@ void AppContext::setTallyState(char state)
     _pimpl->_tallyState = state;
 }
 
-OrientationManager *AppContext::getOrientationManager()
-{
-    return _pimpl->_orientationMgr;
-}
-
-bool AppContext::getOrientation()
-{
-    return _pimpl->_orientationMgr->getOrientation();
-}
-
 BatteryManager *AppContext::getBatteryManager()
 {
     return _pimpl->_batteryMgr;
@@ -277,7 +253,6 @@ void AppContext::setIsCharging(bool charging)
     _pimpl->_isCharging = charging;
 }
 
-// TODO replace with call to getBatteryLevel()?
 double AppContext::getBatteryLevel()
 {
     return _pimpl->_batteryLevel;
@@ -298,11 +273,6 @@ void AppContext::setBacklight(unsigned int brightness)
     _pimpl->_batteryMgr->setBacklight(brightness);
 }
 
-// ScreenManager *AppContext::getScreenManager()
-// {
-//     return _pimpl->_screenMgr;
-// }
-
 void AppContext::checkIsCharging(unsigned long timestamp)
 {
     this->setIsCharging(this->getIsCharging());
@@ -311,12 +281,60 @@ void AppContext::checkIsCharging(unsigned long timestamp)
 void AppContext::checkBatteryLevel(unsigned long timestamp)
 {
     this->setBatteryLevel(this->getBatteryLevel());
-    if (LOG_BATTERY && _pimpl->_saveUptimeInfo)
+    // if (LOG_BATTERY && _pimpl->_saveUptimeInfo)
+    // {
+    //     this->getSettingsManager()->saveUptimeInfo(millis(), this->getBatteryLevel());
+    // }
+}
+
+void AppContext::addLoopEvent(SlotLoopEvent *event)
+{
+    _pimpl->_loopEvents.push_back(event);
+}
+
+void AppContext::handleLoop(unsigned long timestamp)
+{
+    for (auto it = _pimpl->_loopEvents.begin(); it != _pimpl->_loopEvents.end(); ++it)
     {
-        this->getSettingsManager()->saveUptimeInfo(millis(), this->getBatteryLevel());
+        (*it)->execute(timestamp);
     }
 }
 
-void AppContext::checkOrientation(unsigned long timestamp)
+void AppContext::checkVmixResponse(unsigned long timestamp)
 {
+    if (_pimpl->_isVmixConnected)
+    {
+        _pimpl->_vmixMgr->receiveInput();
+    }
+}
+
+void AppContext::checkVmixConnection(unsigned long timestamp)
+{
+    if ((!_pimpl->_isWifiConnected && !_pimpl->_isVmixConnected) || _pimpl->_isErrorFatal)
+    {
+        return;
+    }
+
+    if (!_pimpl->_wifiMgr->isAlive())
+    {
+        Serial.println("Disconnected from wifi, reconnecting...");
+        // TODO fire show connecting screen event
+    }
+
+    if (!_pimpl->_vmixMgr->isAlive())
+    {
+        Serial.println("Disconnected from vMix, reconnecting...");
+        _pimpl->_numReconnections++;
+        // TODO fire show connecting screen event
+    }
+}
+
+void AppContext::setErrorFatal()
+{
+    _pimpl->_isErrorFatal = true;
+}
+
+void AppContext::clearErrorFatal()
+{
+    _pimpl->_isErrorFatal = false;
 }
