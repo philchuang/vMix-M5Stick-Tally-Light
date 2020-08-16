@@ -19,6 +19,7 @@ public:
 
     void show()
     {
+        Serial.println("DEBUG: SplashScreen::show()");
         this->refresh();
         delay(2000);
         this->_context->loadSettings(0);
@@ -26,6 +27,7 @@ public:
 
     void refresh()
     {
+        Serial.println("DEBUG: SplashScreen::refresh()");
         this->sendOrientationChange.fire(LANDSCAPE);
         this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
         M5.Lcd.fillScreen(TFT_BLACK);

@@ -38,6 +38,7 @@ void WifiManager::connect(const char *ssid, const char *passphrase)
 
 bool WifiManager::isAlive()
 {
+        Serial.println("DEBUG: WifiManager::isAlive");
     return WiFi.status() == WL_CONNECTED;
 }
 

@@ -56,7 +56,7 @@ struct AppContext::Impl
 
     AppSettingsManager _appSettingsMgr = AppSettingsManager(EEPROM_SIZE, MAX_SETTINGS_NR);
     unsigned short _appSettingsIdx;
-    AppSettings *_appSettings;
+    AppSettings _appSettings;
 
     WifiManager _wifiMgr;
     bool _isWifiConnected;
@@ -84,10 +84,10 @@ struct AppContext::Impl
 
     void printSettingsDebug()
     {
-        Serial.printf("SSID : %s\n", _appSettings->getWifiSsid());
-        Serial.printf("Pass : %s\n", _appSettings->getWifiPassphrase());
-        Serial.printf("vMix : %s\n", _appSettings->getVmixAddressWithPort());
-        Serial.printf("Tally: %d\n", _appSettings->getVmixTally());
+        Serial.printf("SSID : %s\n", _appSettings.getWifiSsid());
+        Serial.printf("Pass : %s\n", _appSettings.getWifiPassphrase());
+        Serial.printf("vMix : %s\n", _appSettings.getVmixAddressWithPort());
+        Serial.printf("Tally: %d\n", _appSettings.getVmixTally());
     }
 };
 
@@ -100,7 +100,6 @@ AppContext::~AppContext()
 {
     this->sendScreenChange.~Signal();
     _pimpl->_appSettingsMgr.~AppSettingsManager();
-    delete _pimpl->_appSettings;
     _pimpl->_wifiMgr.~WifiManager();
     _pimpl->_vmixMgr.~VmixManager();
     _pimpl->_batteryMgr.~BatteryManager();
@@ -140,42 +139,41 @@ unsigned short AppContext::getNumSettings()
 
 AppSettings *AppContext::getSettings()
 {
-    return _pimpl->_appSettings;
+    return &_pimpl->_appSettings;
 }
 
 AppSettings *AppContext::loadSettings(unsigned short settingsIdx)
 {
     Serial.printf("Loading settings at %d...\n", settingsIdx);
-    auto settings = _pimpl->_appSettingsMgr.load(settingsIdx);
-    if (!settings.isValid())
+    _pimpl->_appSettings = _pimpl->_appSettingsMgr.load(settingsIdx);
+    if (!_pimpl->_appSettings.isValid())
     {
         Serial.println("Invalid settings found, using default settings.");
         if (settingsIdx == 0)
         {
-            settings.setWifiSsid(SETTINGS0_WIFI_SSID);
-            settings.setWifiPassphrase(SETTINGS0_WIFI_PASS);
-            settings.setVmixAddress(SETTINGS0_VMIX_ADDR);
-            settings.setVmixPort(SETTINGS0_VMIX_PORT);
-            settings.setVmixTally(SETTINGS0_TALLY_NR);
+            _pimpl->_appSettings.setWifiSsid(SETTINGS0_WIFI_SSID);
+            _pimpl->_appSettings.setWifiPassphrase(SETTINGS0_WIFI_PASS);
+            _pimpl->_appSettings.setVmixAddress(SETTINGS0_VMIX_ADDR);
+            _pimpl->_appSettings.setVmixPort(SETTINGS0_VMIX_PORT);
+            _pimpl->_appSettings.setVmixTally(SETTINGS0_TALLY_NR);
         }
 #ifdef SETTINGS1_WIFI_SSID
         else if (settingsIdx == 1)
         {
-            settings.setWifiSsid(SETTINGS1_WIFI_SSID);
-            settings.setWifiPassphrase(SETTINGS1_WIFI_PASS);
-            settings.setVmixAddress(SETTINGS1_VMIX_ADDR);
-            settings.setVmixPort(SETTINGS1_VMIX_PORT);
-            settings.setVmixTally(SETTINGS1_TALLY_NR);
+            _pimpl->_appSettings.setWifiSsid(SETTINGS1_WIFI_SSID);
+            _pimpl->_appSettings.setWifiPassphrase(SETTINGS1_WIFI_PASS);
+            _pimpl->_appSettings.setVmixAddress(SETTINGS1_VMIX_ADDR);
+            _pimpl->_appSettings.setVmixPort(SETTINGS1_VMIX_PORT);
+            _pimpl->_appSettings.setVmixTally(SETTINGS1_TALLY_NR);
         }
 #endif
-        _pimpl->_appSettingsMgr.save(settingsIdx, settings);
+        _pimpl->_appSettingsMgr.save(settingsIdx, _pimpl->_appSettings);
         Serial.println("Default settings:");
         _pimpl->printSettingsDebug();
     }
 
-    _pimpl->_appSettings = &settings;
     _pimpl->_appSettingsIdx = settingsIdx;
-    return _pimpl->_appSettings;
+    return &_pimpl->_appSettings;
 }
 
 AppSettings *AppContext::cycleSettings()
@@ -271,13 +269,11 @@ void AppContext::setBacklight(unsigned int brightness)
 
 void AppContext::checkIsCharging(unsigned long timestamp)
 {
-    Serial.println("DEBUG: checkIsCharging");
     this->setIsCharging(_pimpl->_batteryMgr.isCharging());
 }
 
 void AppContext::checkBatteryLevel(unsigned long timestamp)
 {
-    Serial.println("DEBUG: checkBatteryLevel");
     this->setBatteryLevel(_pimpl->_batteryMgr.getBatteryLevel());
     // if (LOG_BATTERY && _pimpl->_saveUptimeInfo)
     // {
@@ -300,41 +296,34 @@ void AppContext::handleLoop(unsigned long timestamp)
 
 void AppContext::checkVmixResponse(unsigned long timestamp)
 {
-    Serial.println("DEBUG: checkVmixResponse 1");
     if (_pimpl->_isVmixConnected)
     {
-        Serial.println("DEBUG: checkVmixResponse 2");
+        Serial.println("DEBUG: checkVmixResponse");
         _pimpl->_vmixMgr.receiveInput();
     }
-    Serial.println("DEBUG: checkVmixResponse 3");
 }
 
 void AppContext::checkVmixConnection(unsigned long timestamp)
 {
-    Serial.println("DEBUG: checkVmixConnection 1");
     if ((!_pimpl->_isWifiConnected && !_pimpl->_isVmixConnected) || _pimpl->_isErrorFatal)
     {
         return;
     }
 
-    Serial.println("DEBUG: checkVmixConnection 2");
+        Serial.println("DEBUG: checkVmixConnection 1");
     if (!_pimpl->_wifiMgr.isAlive())
     {
         Serial.println("Disconnected from wifi, reconnecting...");
-        Serial.println("DEBUG: checkVmixConnection 3");
         this->sendScreenChange.fire(SCREEN_CONN);
     }
 
-    Serial.println("DEBUG: checkVmixConnection 4");
+    Serial.println("DEBUG: checkVmixConnection 2");
     if (!_pimpl->_vmixMgr.isAlive())
     {
-        Serial.println("DEBUG: checkVmixConnection 5");
         Serial.println("Disconnected from vMix, reconnecting...");
         _pimpl->_numReconnections++;
-        Serial.println("DEBUG: checkVmixConnection 6");
         this->sendScreenChange.fire(SCREEN_CONN);
     }
-    Serial.println("DEBUG: checkVmixConnection 7");
 }
 
 void AppContext::setErrorFatal()

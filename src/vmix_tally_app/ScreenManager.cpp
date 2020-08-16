@@ -85,7 +85,7 @@ ScreenManager::ScreenManager(AppContext &context, unsigned int maxScreens)
 
 ScreenManager::~ScreenManager()
 {
-    this->sendOrientationChange.~Signal();
+    // this->sendOrientationChange.~Signal();
     _pimpl->_sendScreenChanged.~Signal();
 
     _pimpl->_orientationMgr.~OrientationManager();
@@ -127,7 +127,8 @@ void ScreenManager::add(Screen *screen)
 
 void ScreenManager::onOrientationChange(unsigned short orientation)
 {
-    this->sendOrientationChange.fire(orientation);
+    // this->sendOrientationChange.fire(orientation);
+    _pimpl->_orientationMgr.setOrientation(orientation);
 }
 
 void ScreenManager::onCycleBacklight(unsigned long timestamp)
@@ -183,6 +184,10 @@ void ScreenManager::onShowFatalErrorScreen(const char *message)
 
 Screen *ScreenManager::getCurrent()
 {
+    if (_pimpl->_currentScreen >= _pimpl->_screens.size())
+    {
+        return nullptr;
+    }
     return _pimpl->_screens[_pimpl->_currentScreen];
 }
 
@@ -191,40 +196,51 @@ void ScreenManager::show(unsigned short screenId)
     _pimpl->_currentScreen = screenId;
     _pimpl->_sendScreenChanged.fire(screenId);
     auto screen = this->getCurrent();
-    screen->show();
+    if (screen != nullptr)
+    {
+        screen->show();
+    }
 }
 
 void ScreenManager::refresh()
 {
     auto screen = this->getCurrent();
-    screen->refresh();
+    if (screen != nullptr)
+    {
+        screen->refresh();
+    }
 }
 
 void ScreenManager::handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
 {
     auto screen = this->getCurrent();
-    screen->handleInput(timestamp, m5Btn, sideBtn);
+    if (screen != nullptr)
+    {
+        screen->handleInput(timestamp, m5Btn, sideBtn);
+    }
 }
 
 void ScreenManager::pollForceRefresh(unsigned long timestamp)
 {
-    Serial.println("DEBUG: pollForceRefresh");
     this->refresh();
 }
 
 void ScreenManager::pollOrientationCheck(unsigned long timestamp)
 {
-    Serial.println("DEBUG: pollOrientationCheck");
     unsigned int newRotation = _pimpl->_orientationMgr.checkRotationChange();
 
     if (newRotation != -1)
     {
-        Serial.printf("DEBUG: pollOrientationCheck-updateRotation: %d\n", newRotation);
-        updateRotation(newRotation);
+        setRotation(newRotation);
     }
 }
 
-void ScreenManager::updateRotation(byte newRotation)
+void ScreenManager::setOrientation(unsigned short orientation)
+{
+    _pimpl->_orientationMgr.setOrientation(orientation);
+}
+
+void ScreenManager::setRotation(byte newRotation)
 {
     if (newRotation != _pimpl->_orientationMgr.getRotation())
     {

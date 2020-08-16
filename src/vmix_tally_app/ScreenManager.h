@@ -18,7 +18,7 @@ public:
     ScreenManager(AppContext &context, unsigned int maxScreens);
     ~ScreenManager();
 
-    Signal<unsigned short> sendOrientationChange;
+    // Signal<unsigned short> sendOrientationChange;
 
     void begin();
     void add(Screen *screen);
@@ -26,6 +26,8 @@ public:
     void show(unsigned short screenId);
     void refresh();
     void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn);
+    void setOrientation(unsigned short orientation);
+    void setRotation(byte newRotation);
 
 protected:
     void onOrientationChange(unsigned short orientation);
@@ -34,7 +36,6 @@ protected:
     void onShowFatalErrorScreen(const char *message);
     void pollForceRefresh(unsigned long timestamp);
     void pollOrientationCheck(unsigned long timestamp);
-    void updateRotation(byte newRotation);
 
 private:
     class Impl;

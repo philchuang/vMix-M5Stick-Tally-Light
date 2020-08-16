@@ -51,6 +51,7 @@ bool VmixManager::connect(const char *addr, unsigned short port)
 
 bool VmixManager::isAlive()
 {
+        Serial.println("DEBUG: VmixManager::isAlive");
     return _pimpl->_vmix_client.connected();
 }
 
@@ -61,6 +62,7 @@ void VmixManager::disconnect()
 
 void VmixManager::receiveInput()
 {
+        Serial.println("DEBUG: VmixManager::receiveInput");
     if (!_pimpl->_vmix_client.available())
     {
         return;

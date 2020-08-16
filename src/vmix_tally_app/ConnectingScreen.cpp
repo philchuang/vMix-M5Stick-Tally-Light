@@ -37,6 +37,7 @@ public:
 
     void show()
     {
+        this->sendOrientationChange.fire(LANDSCAPE);
         M5.Lcd.fillScreen(TFT_BLACK);
 
         if (!reconnectWifi())
