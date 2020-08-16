@@ -13,21 +13,36 @@
 
 // app
 #include "AppContext.h"
+#include "Constants.h"
 #include "Configuration.h"
-#include "ErrorScreen.cpp"
 #include "OrientationManager.h"
 #include "Screen.h"
 #include "SlotLoopEvent.h"
+
+// screens
+#include "ConnectingScreen.cpp"
+#include "ErrorScreen.cpp"
+#include "SettingsScreen.cpp"
+#include "SplashScreen.cpp"
+#include "TallyScreen.cpp"
 
 // constants
 #define APP_SCREENREFRESH_MS 10000u
 #define APP_BRIGHTNESS_TIMEOUT_MS 1000u
 
-// TODO continue refactor & cleanup here
-
 struct ScreenManager::Impl
 {
-    Impl(AppContext &context, unsigned int maxScreens) : _context(&context), _screens(maxScreens)
+    Impl(ScreenManager *self, AppContext &context, unsigned int maxScreens) : _context(&context),
+                                                                              _screens(maxScreens),
+                                                                              _pollForceRefreshDelegate(self, &ScreenManager::pollForceRefresh),
+                                                                              _pollForceRefreshTimer(_pollForceRefreshDelegate, APP_SCREENREFRESH_MS),
+                                                                              _pollOrientationCheckDelegate(self, &ScreenManager::pollOrientationCheck),
+                                                                              _pollOrientationCheckTimer(_pollOrientationCheckDelegate, APP_ORIENTATION_MS),
+                                                                              _orientationChangeListener(self, &ScreenManager::onOrientationChange),
+                                                                              _cycleBacklightListener(self, &ScreenManager::onCycleBacklight),
+                                                                              _colorChangeListener(self, &ScreenManager::onColorChange),
+                                                                              _screenChangeListener(self, &ScreenManager::show),
+                                                                              _showFatalErrorScreenListener(self, &ScreenManager::onShowFatalErrorScreen)
     {
     }
 
@@ -38,18 +53,33 @@ struct ScreenManager::Impl
     Signal<unsigned short> _sendScreenChanged;
 
     AppContext *_context;
-    OrientationManager *_orientationMgr;
+    OrientationManager _orientationMgr = OrientationManager(APP_ROTATION_THRESHOLD);
     unsigned int _currentScreen;
-    std::vector<Screen *> _screens;
-    SlotLoopEvent *_screenRefreshCheck;
 
     unsigned short _lastForegroundColor;
     unsigned short _lastBackgroundColor;
     unsigned int _lastBrightness = 0;
+
+    std::vector<Screen *> _screens;
+    ErrorScreen _errorScreen = ErrorScreen(*_context);
+    SplashScreen _splashScreen = SplashScreen(*_context);
+    ConnectingScreen _connectScreen = ConnectingScreen(*_context);
+    TallyScreen _tallyScreen = TallyScreen(*_context, HIGH_VIZ_MODE);
+    SettingsScreen _settingsScreen = SettingsScreen(*_context);
+
+    MethodSlot<ScreenManager, unsigned long> _pollForceRefreshDelegate;
+    SlotLoopEvent _pollForceRefreshTimer;
+    MethodSlot<ScreenManager, unsigned long> _pollOrientationCheckDelegate;
+    SlotLoopEvent _pollOrientationCheckTimer;
+    MethodSlot<ScreenManager, unsigned short> _orientationChangeListener;
+    MethodSlot<ScreenManager, unsigned long> _cycleBacklightListener;
+    MethodSlot<ScreenManager, Colors> _colorChangeListener;
+    MethodSlot<ScreenManager, unsigned short> _screenChangeListener;
+    MethodSlot<ScreenManager, const char *> _showFatalErrorScreenListener;
 };
 
 ScreenManager::ScreenManager(AppContext &context, unsigned int maxScreens)
-    : _pimpl(new Impl(context, maxScreens))
+    : _pimpl(new Impl(this, context, maxScreens))
 {
 }
 
@@ -57,10 +87,8 @@ ScreenManager::~ScreenManager()
 {
     this->sendOrientationChange.~Signal();
     _pimpl->_sendScreenChanged.~Signal();
-    delete _pimpl->_screenRefreshCheck;
 
-    _pimpl->_orientationMgr->~OrientationManager();
-    delete _pimpl->_orientationMgr;
+    _pimpl->_orientationMgr.~OrientationManager();
 
     for (auto it = _pimpl->_screens.begin(); it != _pimpl->_screens.end(); ++it)
     {
@@ -73,34 +101,27 @@ ScreenManager::~ScreenManager()
 
 void ScreenManager::begin()
 {
-    MethodSlot<ScreenManager, unsigned long> forceRefreshListener(this, &ScreenManager::pollForceRefresh);
-    auto temp = SlotLoopEvent(forceRefreshListener, APP_SCREENREFRESH_MS);
-    _pimpl->_screenRefreshCheck = &temp;
+    _pimpl->_orientationMgr.begin();
 
-    auto orientationMgr = OrientationManager(APP_ROTATION_THRESHOLD);
-    orientationMgr.begin();
-    _pimpl->_orientationMgr = &orientationMgr;
+    _pimpl->_context->addLoopEvent(&_pimpl->_pollForceRefreshTimer);
+    _pimpl->_context->addLoopEvent(&_pimpl->_pollOrientationCheckTimer);
 
-    MethodSlot<ScreenManager, unsigned long> orientationChecker(this, &ScreenManager::pollOrientationCheck);
-    temp = SlotLoopEvent(orientationChecker, APP_ORIENTATION_MS);
-    _pimpl->_context->addLoopEvent(&temp);
-
+    this->add(&(_pimpl->_errorScreen));
+    this->add(&(_pimpl->_splashScreen));
+    this->add(&(_pimpl->_connectScreen));
+    this->add(&(_pimpl->_tallyScreen));
+    this->add(&(_pimpl->_settingsScreen));
 }
 
 void ScreenManager::add(Screen *screen)
 {
-    MethodSlot<ScreenManager, unsigned short> orientationChangeListener(this, &ScreenManager::onOrientationChange);
-    screen->sendOrientationChange.attach(orientationChangeListener);
-    MethodSlot<ScreenManager, unsigned long> cycleBacklightListener(this, &ScreenManager::onCycleBacklight);
-    screen->sendCycleBacklight.attach(cycleBacklightListener);
-    MethodSlot<ScreenManager, Colors> colorChangeListener(this, &ScreenManager::onColorChange);
-    screen->sendColorChange.attach(colorChangeListener);
-    MethodSlot<ScreenManager, unsigned short> screenChangeListener(this, &ScreenManager::show);
-    screen->sendScreenChange.attach(screenChangeListener);
-    MethodSlot<ScreenManager, const char *> showFatalErrorScreenListener(this, &ScreenManager::onShowFatalErrorScreen);
-    screen->sendShowFatalErrorScreen.attach(showFatalErrorScreenListener);
-    MethodSlot<Screen, unsigned short> onScreenChangedListener(screen, &Screen::onScreenChanged);
-    _pimpl->_sendScreenChanged.attach(onScreenChangedListener);
+    screen->sendOrientationChange.attach(_pimpl->_orientationChangeListener);
+    screen->sendCycleBacklight.attach(_pimpl->_cycleBacklightListener);
+    screen->sendColorChange.attach(_pimpl->_colorChangeListener);
+    screen->sendScreenChange.attach(_pimpl->_screenChangeListener);
+    screen->sendShowFatalErrorScreen.attach(_pimpl->_showFatalErrorScreenListener);
+
+    _pimpl->_sendScreenChanged.attach(screen->recvScreenChange);
     _pimpl->_screens[screen->getId()] = screen;
 }
 
@@ -111,7 +132,7 @@ void ScreenManager::onOrientationChange(unsigned short orientation)
 
 void ScreenManager::onCycleBacklight(unsigned long timestamp)
 {
-    _pimpl->_screenRefreshCheck->setNextExecute(timestamp + APP_BRIGHTNESS_TIMEOUT_MS);
+    _pimpl->_pollForceRefreshTimer.setNextExecute(timestamp + APP_BRIGHTNESS_TIMEOUT_MS);
 
     char *brightnessString = new char[4];
     M5.Lcd.setTextSize(1);
@@ -121,7 +142,7 @@ void ScreenManager::onCycleBacklight(unsigned long timestamp)
     M5.Lcd.setTextColor(_pimpl->_lastBackgroundColor);
     sprintf(brightnessString, "%d%%", _pimpl->_lastBrightness);
 
-    auto orientation = _pimpl->_orientationMgr->getOrientation();
+    auto orientation = _pimpl->_orientationMgr.getOrientation();
     if (orientation == LANDSCAPE)
     {
         M5.Lcd.drawString(brightnessString, 80, 80, 1);
@@ -169,7 +190,8 @@ void ScreenManager::show(unsigned short screenId)
 {
     _pimpl->_currentScreen = screenId;
     _pimpl->_sendScreenChanged.fire(screenId);
-    this->refresh();
+    auto screen = this->getCurrent();
+    screen->show();
 }
 
 void ScreenManager::refresh()
@@ -180,31 +202,33 @@ void ScreenManager::refresh()
 
 void ScreenManager::handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
 {
-    _pimpl->_screenRefreshCheck->execute(timestamp);
     auto screen = this->getCurrent();
     screen->handleInput(timestamp, m5Btn, sideBtn);
 }
 
 void ScreenManager::pollForceRefresh(unsigned long timestamp)
 {
+    Serial.println("DEBUG: pollForceRefresh");
     this->refresh();
 }
 
 void ScreenManager::pollOrientationCheck(unsigned long timestamp)
 {
-    unsigned int newRotation = _pimpl->_orientationMgr->checkRotationChange();
+    Serial.println("DEBUG: pollOrientationCheck");
+    unsigned int newRotation = _pimpl->_orientationMgr.checkRotationChange();
 
     if (newRotation != -1)
     {
+        Serial.printf("DEBUG: pollOrientationCheck-updateRotation: %d\n", newRotation);
         updateRotation(newRotation);
     }
 }
 
 void ScreenManager::updateRotation(byte newRotation)
 {
-    if (newRotation != _pimpl->_orientationMgr->getRotation())
+    if (newRotation != _pimpl->_orientationMgr.getRotation())
     {
-        _pimpl->_orientationMgr->setRotation(newRotation);
+        _pimpl->_orientationMgr.setRotation(newRotation);
         this->refresh();
     }
 }

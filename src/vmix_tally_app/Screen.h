@@ -19,7 +19,10 @@
 class Screen
 {
 public:
-    Screen(AppContext &context) : _context(&context) {}
+    Screen(Screen *self, AppContext &context) : _context(&context),
+                                                recvScreenChange(self, &Screen::onScreenChanged)
+    {
+    }
     ~Screen() {}
 
     Signal<unsigned short> sendOrientationChange;
@@ -27,6 +30,8 @@ public:
     Signal<Colors> sendColorChange;
     Signal<unsigned short> sendScreenChange;
     Signal<const char *> sendShowFatalErrorScreen;
+
+    MethodSlot<Screen, unsigned short> recvScreenChange;
 
     virtual void unregister()
     {

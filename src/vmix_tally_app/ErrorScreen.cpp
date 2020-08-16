@@ -12,7 +12,7 @@
 class ErrorScreen : public Screen
 {
 public:
-    ErrorScreen(AppContext &context) : Screen(context) {}
+    ErrorScreen(AppContext &context) : Screen(this, context) {}
     ~ErrorScreen() {}
 
     void setMessage(const char *message)

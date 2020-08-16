@@ -41,7 +41,7 @@ AppSettings AppSettingsManager::load(unsigned short settingsIdx)
 {
     unsigned long ptr = settingsIdx * _pimpl->_eepromSize;
 
-    AppSettings settings = AppSettings();
+    AppSettings settings;
 
     char *temp = new char[WifiSsidMaxLength];
     EEPROM.readString(ptr, temp, WifiSsidMaxLength);
@@ -70,25 +70,25 @@ AppSettings AppSettingsManager::load(unsigned short settingsIdx)
     return settings;
 }
 
-void AppSettingsManager::save(unsigned short settingsIdx, AppSettings *settings)
+void AppSettingsManager::save(unsigned short settingsIdx, AppSettings &settings)
 {
     this->clear(settingsIdx);
 
     unsigned long ptr = settingsIdx * _pimpl->_eepromSize;
 
-    EEPROM.writeString(ptr, settings->getWifiSsid());
+    EEPROM.writeString(ptr, settings.getWifiSsid());
     ptr += WifiSsidMaxLength;
 
-    EEPROM.writeString(ptr, settings->getWifiPassphrase());
+    EEPROM.writeString(ptr, settings.getWifiPassphrase());
     ptr += WifiPassMaxLength;
 
-    EEPROM.writeString(ptr, settings->getVmixAddress());
+    EEPROM.writeString(ptr, settings.getVmixAddress());
     ptr += VmixAddrMaxLength;
 
-    EEPROM.writeUShort(ptr, settings->getVmixPort());
+    EEPROM.writeUShort(ptr, settings.getVmixPort());
     ptr += 2;
 
-    EEPROM.writeUShort(ptr, settings->getVmixTally());
+    EEPROM.writeUShort(ptr, settings.getVmixTally());
     ptr += 2;
 
     EEPROM.commit();

@@ -21,7 +21,7 @@
 class ConnectingScreen : public Screen
 {
 public:
-    ConnectingScreen(AppContext &context) : Screen(context)
+    ConnectingScreen(AppContext &context) : Screen(this, context)
     {
         this->_wifiMgr = _context->getWifiManager();
         this->_vmixMgr = _context->getVmixManager();

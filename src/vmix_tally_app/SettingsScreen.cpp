@@ -13,7 +13,7 @@
 class SettingsScreen : public Screen
 {
 public:
-    SettingsScreen(AppContext &context) : Screen(context) {}
+    SettingsScreen(AppContext &context) : Screen(this, context) {}
     ~SettingsScreen() {}
 
     unsigned int getId() { return SCREEN_SETTINGS; }

@@ -4,6 +4,8 @@
 #ifndef APPCONTEXT_H
 #define APPCONTEXT_H
 
+#include "Callback.h"
+
 #include "AppSettings.h"
 #include "AppSettingsDefaults.h"
 #include "AppSettingsManager.h"
@@ -20,6 +22,8 @@ class AppContext
 public:
     AppContext();
     ~AppContext();
+
+    Signal<unsigned short> sendScreenChange;
 
     void begin();
 

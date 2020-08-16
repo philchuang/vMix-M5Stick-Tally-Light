@@ -12,7 +12,7 @@
 class SplashScreen : public Screen
 {
 public:
-    SplashScreen(AppContext &context) : Screen(context) {}
+    SplashScreen(AppContext &context) : Screen(this, context) {}
     ~SplashScreen() { }
 
     unsigned int getId() { return SCREEN_SPLASH; }

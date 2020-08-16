@@ -16,7 +16,8 @@
 class TallyScreen : public Screen
 {
 public:
-    TallyScreen(AppContext &context, bool isHighViz) : Screen(context), _isHighVizMode(isHighViz)
+    TallyScreen(AppContext &context, bool isHighViz) : Screen(this, context),
+                                                       _isHighVizMode(isHighViz)
     {
         this->_vmix = this->_context->getVmixManager();
         MethodSlot<TallyScreen, char> tallyStateChangedListener(this, &TallyScreen::handleTallyStateChanged);

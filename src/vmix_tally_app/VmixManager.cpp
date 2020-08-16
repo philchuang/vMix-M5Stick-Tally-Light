@@ -23,7 +23,7 @@ struct VmixManager::Impl
 
     ~Impl() { }
 
-    WiFiClient *_vmix_client;
+    WiFiClient _vmix_client;
     String _lastTallyResponse;
     unsigned short _currentTally;
 };
@@ -37,38 +37,36 @@ VmixManager::~VmixManager()
 
 void VmixManager::begin()
 {
-    auto client = WiFiClient();
-    _pimpl->_vmix_client = &client;
 }
 
 bool VmixManager::connect(const char *addr, unsigned short port)
 {
-    if (_pimpl->_vmix_client->connected())
+    if (_pimpl->_vmix_client.connected())
     {
-        _pimpl->_vmix_client->stop();
+        _pimpl->_vmix_client.stop();
     }
 
-    return _pimpl->_vmix_client->connect(addr, port);
+    return _pimpl->_vmix_client.connect(addr, port);
 }
 
 bool VmixManager::isAlive()
 {
-    return _pimpl->_vmix_client->connected();
+    return _pimpl->_vmix_client.connected();
 }
 
 void VmixManager::disconnect()
 {
-    _pimpl->_vmix_client->stop();
+    _pimpl->_vmix_client.stop();
 }
 
 void VmixManager::receiveInput()
 {
-    if (!_pimpl->_vmix_client->available())
+    if (!_pimpl->_vmix_client.available())
     {
         return;
     }
 
-    String data = _pimpl->_vmix_client->readStringUntil('\r\n');
+    String data = _pimpl->_vmix_client.readStringUntil('\r\n');
     Serial.printf("VMIX: %s\n", data.c_str());
 
     if (data.indexOf(VMIX_API_GET_TALLY_RESPONSE_PREFIX) == 0)
@@ -97,15 +95,15 @@ void VmixManager::receiveInput()
 
 void VmixManager::sendSubscribeTally()
 {
-    _pimpl->_vmix_client->println(VMIX_API_SUBSCRIBE_TALLY);
+    _pimpl->_vmix_client.println(VMIX_API_SUBSCRIBE_TALLY);
 }
 
 void VmixManager::sendQuickPlayInput(unsigned short tallyNr)
 {
-    if (!_pimpl->_vmix_client->connected())
+    if (!_pimpl->_vmix_client.connected())
         return;
 
-    _pimpl->_vmix_client->printf(VMIX_API_FUNCTION_QUICKPLAY_INPUT, tallyNr);
+    _pimpl->_vmix_client.printf(VMIX_API_FUNCTION_QUICKPLAY_INPUT, tallyNr);
 }
 
 unsigned char VmixManager::getCurrentTallyState()

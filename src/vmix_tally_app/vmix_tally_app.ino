@@ -1,4 +1,3 @@
-
 /* 
  * includes
  */
@@ -31,22 +30,15 @@
 #include "VmixManager.h"
 #include "WifiManager.h"
 
-// app implementations
-#include "ConnectingScreen.cpp"
-#include "ErrorScreen.cpp"
-#include "SettingsScreen.cpp"
-#include "SplashScreen.cpp"
-#include "TallyScreen.cpp"
-
 /* 
  * the core of the application: setup() and loop()
  */
 
 // globals
-AppContext *_context;
-ScreenManager *_screenMgr;
-PinButton btnM5 = PinButton(37);
-PinButton btnSide = PinButton(39);
+AppContext _context;
+ScreenManager _screenMgr(_context, MAX_SCREENS);
+PinButton btnM5(37);
+PinButton btnSide(39);
 bool _saveUptimeInfo = false; // TEMPORARY
 
 void setup()
@@ -55,9 +47,7 @@ void setup()
     initHardware();
 
     // context and services initialization
-    auto context = AppContext();
-    _context = &context;
-    _context->begin();
+    _context.begin();
 
     initPower();
 
@@ -69,31 +59,31 @@ void setup()
     {
         if (PREPARE_BATTERY_LOGGING)
         {
-            _context->getSettingsManager()->saveUptimeInfo(0, 0);
+            _context.getSettingsManager()->saveUptimeInfo(0, 0);
             _saveUptimeInfo = false;
         }
         else
         {
             delay(10000);
         }
-        if (_context->getSettingsManager()->getLastUptime() != 0)
+        if (_context.getSettingsManager()->getLastUptime() != 0)
         {
             _saveUptimeInfo = false;
         }
     }
 
-    _screenMgr->show(SCREEN_SPLASH);
+    _screenMgr.show(SCREEN_SPLASH);
 }
 
 void loop()
 {
     unsigned long timestamp = millis();
 
-    _context->handleLoop(timestamp);
+    _context.handleLoop(timestamp);
 
     btnM5.update();
     btnSide.update();
-    _screenMgr->handleInput(timestamp, btnM5, btnSide);
+    _screenMgr.handleInput(timestamp, btnM5, btnSide);
 }
 
 void initHardware()
@@ -112,13 +102,13 @@ void initPower()
 
     if (HIGH_VIZ_MODE)
     {
-        _context->setBacklight(100);
+        _context.setBacklight(100);
     }
     else
     {
-        _context->setBacklight(60);
+        _context.setBacklight(60);
     }
-    _context->getBatteryManager()->setLedOn(false);
+    _context.getBatteryManager()->setLedOn(false);
 }
 
 void initSettings()
@@ -127,7 +117,7 @@ void initSettings()
     {
         Serial.println("Clearing EEPROM...");
 
-        auto settingsMgr = _context->getSettingsManager();
+        auto settingsMgr = _context.getSettingsManager();
 
         for (auto i = 0; i < settingsMgr->getNumSettings(); i++)
         {
@@ -141,28 +131,5 @@ void initSettings()
 
 void initScreens()
 {
-    auto screenMgr = ScreenManager(*_context, MAX_SCREENS);
-    _screenMgr = &screenMgr;
-
-    Screen *screen;
-
-    ErrorScreen errScr(*_context);
-    screen = &errScr;
-    _screenMgr->add(screen);
-
-    SplashScreen splash(*_context);
-    screen = &splash;
-    _screenMgr->add(screen);
-
-    ConnectingScreen connect(*_context);
-    screen = &connect;
-    _screenMgr->add(screen);
-
-    TallyScreen tally(*_context, HIGH_VIZ_MODE);
-    screen = &tally;
-    _screenMgr->add(screen);
-
-    SettingsScreen settings(*_context);
-    screen = &settings;
-    _screenMgr->add(screen);
+    _screenMgr.begin();
 }

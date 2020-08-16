@@ -35,7 +35,18 @@
 
 struct AppContext::Impl
 {
-    Impl()
+    Impl(AppContext *appContext) : _checkIsChargingDelegate(appContext, &AppContext::checkIsCharging),
+                                   _checkIsChargingTimer(_checkIsChargingDelegate, M5_CHARGING_MS),
+                                   _checkBatteryLevelDelegate(appContext, &AppContext::checkBatteryLevel),
+                                   _checkBatteryLevelTimer(_checkBatteryLevelDelegate, M5_BATTERYLEVEL_MS),
+                                   _checkVmixResponseDelegate(appContext, &AppContext::checkVmixResponse),
+                                   _checkVmixResponseTimer(_checkVmixResponseDelegate, VMIX_RESPONSE_MS),
+                                   _checkVmixConnectionDelegate(appContext, &AppContext::checkVmixConnection),
+                                   _checkVmixConnectionTimer(_checkVmixConnectionDelegate, VMIX_KEEPALIVE_MS),
+                                   _isWifiConnected(false),
+                                   _isVmixConnected(false),
+                                   _isCharging(false),
+                                   _isErrorFatal(false)
     {
     }
 
@@ -43,23 +54,31 @@ struct AppContext::Impl
     {
     }
 
-    AppSettingsManager *_appSettingsMgr;
+    AppSettingsManager _appSettingsMgr = AppSettingsManager(EEPROM_SIZE, MAX_SETTINGS_NR);
     unsigned short _appSettingsIdx;
     AppSettings *_appSettings;
 
-    WifiManager *_wifiMgr;
+    WifiManager _wifiMgr;
     bool _isWifiConnected;
     unsigned int _numReconnections;
 
-    VmixManager *_vmixMgr;
+    VmixManager _vmixMgr;
     bool _isVmixConnected;
     char _tallyState;
 
-    BatteryManager *_batteryMgr;
+    BatteryManager _batteryMgr;
     bool _isCharging;
     double _batteryLevel;
 
     std::vector<SlotLoopEvent *> _loopEvents;
+    MethodSlot<AppContext, unsigned long> _checkIsChargingDelegate;
+    SlotLoopEvent _checkIsChargingTimer;
+    MethodSlot<AppContext, unsigned long> _checkBatteryLevelDelegate;
+    SlotLoopEvent _checkBatteryLevelTimer;
+    MethodSlot<AppContext, unsigned long> _checkVmixResponseDelegate;
+    SlotLoopEvent _checkVmixResponseTimer;
+    MethodSlot<AppContext, unsigned long> _checkVmixConnectionDelegate;
+    SlotLoopEvent _checkVmixConnectionTimer;
 
     bool _isErrorFatal;
 
@@ -73,60 +92,40 @@ struct AppContext::Impl
 };
 
 AppContext::AppContext()
-    : _pimpl(new Impl())
+    : _pimpl(new Impl(this))
 {
 }
 
 AppContext::~AppContext()
 {
-    _pimpl->_appSettingsMgr->~AppSettingsManager();
-    delete _pimpl->_appSettingsMgr;
+    this->sendScreenChange.~Signal();
+    _pimpl->_appSettingsMgr.~AppSettingsManager();
     delete _pimpl->_appSettings;
-    _pimpl->_wifiMgr->~WifiManager();
-    delete _pimpl->_wifiMgr;
-    _pimpl->_vmixMgr->~VmixManager();
-    delete _pimpl->_vmixMgr;
-    _pimpl->_batteryMgr->~BatteryManager();
-    delete _pimpl->_batteryMgr;
+    _pimpl->_wifiMgr.~WifiManager();
+    _pimpl->_vmixMgr.~VmixManager();
+    _pimpl->_batteryMgr.~BatteryManager();
 };
 
 void AppContext::begin()
 {
-    auto settingsMgr = AppSettingsManager(EEPROM_SIZE, MAX_SETTINGS_NR);
-    settingsMgr.begin();
-    _pimpl->_appSettingsMgr = &settingsMgr;
+    _pimpl->_appSettingsMgr.begin();
 
-    auto wifi = WifiManager();
-    _pimpl->_wifiMgr = &wifi;
+    _pimpl->_wifiMgr.begin();
 
-    auto vmix = VmixManager();
-    _pimpl->_vmixMgr = &vmix;
+    _pimpl->_vmixMgr.begin();
 
-    auto batt = BatteryManager();
-    batt.begin();
-    _pimpl->_batteryMgr = &batt;
+    _pimpl->_batteryMgr.begin();
 
     // set up polling events
-    MethodSlot<AppContext, unsigned long> isChargingChecker(this, &AppContext::checkIsCharging);
-    auto temp = SlotLoopEvent(isChargingChecker, M5_CHARGING_MS);
-    _pimpl->_loopEvents.push_back(&temp);
-
-    MethodSlot<AppContext, unsigned long> batteryLevelChecker(this, &AppContext::checkBatteryLevel);
-    temp = SlotLoopEvent(batteryLevelChecker, M5_BATTERYLEVEL_MS);
-    _pimpl->_loopEvents.push_back(&temp);
-
-    MethodSlot<AppContext, unsigned long> vmixResponseChecker(this, &AppContext::checkVmixResponse);
-    temp = SlotLoopEvent(vmixResponseChecker, VMIX_RESPONSE_MS);
-    _pimpl->_loopEvents.push_back(&temp);
-
-    MethodSlot<AppContext, unsigned long> vmixCnxChecker(this, &AppContext::checkVmixConnection);
-    temp = SlotLoopEvent(vmixCnxChecker, VMIX_KEEPALIVE_MS);
-    _pimpl->_loopEvents.push_back(&temp);
+    _pimpl->_loopEvents.push_back(&_pimpl->_checkIsChargingTimer);
+    _pimpl->_loopEvents.push_back(&_pimpl->_checkBatteryLevelTimer);
+    _pimpl->_loopEvents.push_back(&_pimpl->_checkVmixResponseTimer);
+    _pimpl->_loopEvents.push_back(&_pimpl->_checkVmixConnectionTimer);
 }
 
 AppSettingsManager *AppContext::getSettingsManager()
 {
-    return _pimpl->_appSettingsMgr;
+    return &(_pimpl->_appSettingsMgr);
 }
 
 unsigned short AppContext::getSettingsIdx()
@@ -136,7 +135,7 @@ unsigned short AppContext::getSettingsIdx()
 
 unsigned short AppContext::getNumSettings()
 {
-    return _pimpl->_appSettingsMgr->getNumSettings();
+    return _pimpl->_appSettingsMgr.getNumSettings();
 }
 
 AppSettings *AppContext::getSettings()
@@ -147,7 +146,7 @@ AppSettings *AppContext::getSettings()
 AppSettings *AppContext::loadSettings(unsigned short settingsIdx)
 {
     Serial.printf("Loading settings at %d...\n", settingsIdx);
-    auto settings = _pimpl->_appSettingsMgr->load(settingsIdx);
+    auto settings = _pimpl->_appSettingsMgr.load(settingsIdx);
     if (!settings.isValid())
     {
         Serial.println("Invalid settings found, using default settings.");
@@ -169,7 +168,7 @@ AppSettings *AppContext::loadSettings(unsigned short settingsIdx)
             settings.setVmixTally(SETTINGS1_TALLY_NR);
         }
 #endif
-        _pimpl->_appSettingsMgr->save(settingsIdx, &settings);
+        _pimpl->_appSettingsMgr.save(settingsIdx, settings);
         Serial.println("Default settings:");
         _pimpl->printSettingsDebug();
     }
@@ -187,10 +186,9 @@ AppSettings *AppContext::cycleSettings()
 
 WifiManager *AppContext::getWifiManager()
 {
-    return _pimpl->_wifiMgr;
+    return &(_pimpl->_wifiMgr);
 }
 
-// TODO replace with call to isAlive()?
 bool AppContext::getIsWifiConnected()
 {
     return _pimpl->_isWifiConnected;
@@ -213,10 +211,9 @@ void AppContext::incNumReconnections()
 
 VmixManager *AppContext::getVmixManager()
 {
-    return _pimpl->_vmixMgr;
+    return &(_pimpl->_vmixMgr);
 }
 
-// TODO replace with call to isAlive()?
 bool AppContext::getIsVmixConnected()
 {
     return _pimpl->_isVmixConnected;
@@ -239,10 +236,9 @@ void AppContext::setTallyState(char state)
 
 BatteryManager *AppContext::getBatteryManager()
 {
-    return _pimpl->_batteryMgr;
+    return &(_pimpl->_batteryMgr);
 }
 
-// TODO replace with call to isCharging()?
 bool AppContext::getIsCharging()
 {
     return _pimpl->_isCharging;
@@ -265,22 +261,24 @@ void AppContext::setBatteryLevel(double battery)
 
 unsigned int AppContext::cycleBacklight()
 {
-    return _pimpl->_batteryMgr->cycleBacklight();
+    return _pimpl->_batteryMgr.cycleBacklight();
 }
 
 void AppContext::setBacklight(unsigned int brightness)
 {
-    _pimpl->_batteryMgr->setBacklight(brightness);
+    _pimpl->_batteryMgr.setBacklight(brightness);
 }
 
 void AppContext::checkIsCharging(unsigned long timestamp)
 {
-    this->setIsCharging(this->getIsCharging());
+    Serial.println("DEBUG: checkIsCharging");
+    this->setIsCharging(_pimpl->_batteryMgr.isCharging());
 }
 
 void AppContext::checkBatteryLevel(unsigned long timestamp)
 {
-    this->setBatteryLevel(this->getBatteryLevel());
+    Serial.println("DEBUG: checkBatteryLevel");
+    this->setBatteryLevel(_pimpl->_batteryMgr.getBatteryLevel());
     // if (LOG_BATTERY && _pimpl->_saveUptimeInfo)
     // {
     //     this->getSettingsManager()->saveUptimeInfo(millis(), this->getBatteryLevel());
@@ -302,31 +300,41 @@ void AppContext::handleLoop(unsigned long timestamp)
 
 void AppContext::checkVmixResponse(unsigned long timestamp)
 {
+    Serial.println("DEBUG: checkVmixResponse 1");
     if (_pimpl->_isVmixConnected)
     {
-        _pimpl->_vmixMgr->receiveInput();
+        Serial.println("DEBUG: checkVmixResponse 2");
+        _pimpl->_vmixMgr.receiveInput();
     }
+    Serial.println("DEBUG: checkVmixResponse 3");
 }
 
 void AppContext::checkVmixConnection(unsigned long timestamp)
 {
+    Serial.println("DEBUG: checkVmixConnection 1");
     if ((!_pimpl->_isWifiConnected && !_pimpl->_isVmixConnected) || _pimpl->_isErrorFatal)
     {
         return;
     }
 
-    if (!_pimpl->_wifiMgr->isAlive())
+    Serial.println("DEBUG: checkVmixConnection 2");
+    if (!_pimpl->_wifiMgr.isAlive())
     {
         Serial.println("Disconnected from wifi, reconnecting...");
-        // TODO fire show connecting screen event
+        Serial.println("DEBUG: checkVmixConnection 3");
+        this->sendScreenChange.fire(SCREEN_CONN);
     }
 
-    if (!_pimpl->_vmixMgr->isAlive())
+    Serial.println("DEBUG: checkVmixConnection 4");
+    if (!_pimpl->_vmixMgr.isAlive())
     {
+        Serial.println("DEBUG: checkVmixConnection 5");
         Serial.println("Disconnected from vMix, reconnecting...");
         _pimpl->_numReconnections++;
-        // TODO fire show connecting screen event
+        Serial.println("DEBUG: checkVmixConnection 6");
+        this->sendScreenChange.fire(SCREEN_CONN);
     }
+    Serial.println("DEBUG: checkVmixConnection 7");
 }
 
 void AppContext::setErrorFatal()

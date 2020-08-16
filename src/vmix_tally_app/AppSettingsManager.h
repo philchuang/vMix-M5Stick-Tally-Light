@@ -16,7 +16,7 @@ public:
     void begin();
     
     AppSettings load(unsigned short settingsIdx);
-    void save(unsigned short settingsIdx, AppSettings *settings);
+    void save(unsigned short settingsIdx, AppSettings &settings);
     void clear(unsigned short settingsIdx);
     unsigned short getNumSettings();
     
