@@ -32,7 +32,7 @@ VmixManager::VmixManager() : _pimpl(new Impl()) { }
 
 VmixManager::~VmixManager()
 {
-    delete _pimpl->_vmix_client; 
+    _pimpl->_vmix_client.~WiFiClient();
 }
 
 void VmixManager::begin()
