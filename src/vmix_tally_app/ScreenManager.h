@@ -35,7 +35,7 @@ protected:
     void onColorChange(Colors colors);
     void onShowFatalErrorScreen(const char *message);
     void pollForceRefresh(unsigned long timestamp);
-    void pollOrientationCheck(unsigned long timestamp);
+    void pollRotationCheck(unsigned long timestamp);
 
 private:
     class Impl;

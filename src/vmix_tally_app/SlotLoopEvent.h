@@ -6,6 +6,7 @@
 class SlotLoopEvent
 {
     Slot<unsigned long> *_slot;
+    // if _intervalMs = 0, execute all the time, if _intervalMs < 0 then execute only when setNextExecute is used
     unsigned int _intervalMs;
     unsigned long _nextExecution = 0;
 
@@ -27,9 +28,17 @@ public:
 
     void execute(unsigned long timestamp)
     {
-        if (this->_intervalMs == 0 || timestamp > this->_nextExecution)
+        if (this->_intervalMs == 0 || (timestamp > this->_nextExecution && this->_nextExecution >= 0))
         {
-            this->_nextExecution = timestamp + this->_intervalMs;
+            if (this->_intervalMs < 0)
+            {
+                this->_nextExecution = -1;
+            }
+            else
+            {
+                this->_nextExecution = timestamp + this->_intervalMs;
+            }
+
             (*this->_slot)(timestamp);
         }
     }

@@ -36,8 +36,8 @@ struct ScreenManager::Impl
                                                                               _screens(maxScreens),
                                                                               _pollForceRefreshDelegate(self, &ScreenManager::pollForceRefresh),
                                                                               _pollForceRefreshTimer(_pollForceRefreshDelegate, APP_SCREENREFRESH_MS),
-                                                                              _pollOrientationCheckDelegate(self, &ScreenManager::pollOrientationCheck),
-                                                                              _pollOrientationCheckTimer(_pollOrientationCheckDelegate, APP_ORIENTATION_MS),
+                                                                              _pollRotationCheckDelegate(self, &ScreenManager::pollRotationCheck),
+                                                                              _pollRotationCheckTimer(_pollRotationCheckDelegate, APP_ORIENTATION_MS),
                                                                               _orientationChangeListener(self, &ScreenManager::onOrientationChange),
                                                                               _cycleBacklightListener(self, &ScreenManager::onCycleBacklight),
                                                                               _colorChangeListener(self, &ScreenManager::onColorChange),
@@ -69,8 +69,8 @@ struct ScreenManager::Impl
 
     MethodSlot<ScreenManager, unsigned long> _pollForceRefreshDelegate;
     SlotLoopEvent _pollForceRefreshTimer;
-    MethodSlot<ScreenManager, unsigned long> _pollOrientationCheckDelegate;
-    SlotLoopEvent _pollOrientationCheckTimer;
+    MethodSlot<ScreenManager, unsigned long> _pollRotationCheckDelegate;
+    SlotLoopEvent _pollRotationCheckTimer;
     MethodSlot<ScreenManager, unsigned short> _orientationChangeListener;
     MethodSlot<ScreenManager, unsigned long> _cycleBacklightListener;
     MethodSlot<ScreenManager, Colors> _colorChangeListener;
@@ -104,7 +104,7 @@ void ScreenManager::begin()
     _pimpl->_orientationMgr.begin();
 
     _pimpl->_context->addLoopEvent(&_pimpl->_pollForceRefreshTimer);
-    _pimpl->_context->addLoopEvent(&_pimpl->_pollOrientationCheckTimer);
+    _pimpl->_context->addLoopEvent(&_pimpl->_pollRotationCheckTimer);
 
     this->add(&(_pimpl->_errorScreen));
     this->add(&(_pimpl->_splashScreen));
@@ -228,13 +228,13 @@ void ScreenManager::pollForceRefresh(unsigned long timestamp)
     this->refresh();
 }
 
-void ScreenManager::pollOrientationCheck(unsigned long timestamp)
+void ScreenManager::pollRotationCheck(unsigned long timestamp)
 {
     unsigned int newRotation = _pimpl->_orientationMgr.checkRotationChange();
 
     if (newRotation != -1)
     {
-        setRotation(newRotation);
+        this->setRotation(newRotation);
     }
 }
 
