@@ -71,11 +71,11 @@ void VmixManager::receiveInput()
 
     if (data.indexOf(VMIX_API_GET_TALLY_RESPONSE_PREFIX) == 0)
     {
-        auto trimmed = data.substring(8);
-        auto changed = trimmed.equals(_pimpl->_lastTallyResponse);
-        _pimpl->_lastTallyResponse = trimmed;
+        auto trimmed = data.substring(8); // length of VMIX_API_GET_TALLY_RESPONSE_PREFIX
+        auto changed = !trimmed.equals(_pimpl->_lastTallyResponse);
         if (changed)
         {
+            _pimpl->_lastTallyResponse = trimmed;
             this->onTallyStateChange.fire(this->getCurrentTallyState());
         }
     }
@@ -117,7 +117,7 @@ unsigned char VmixManager::getCurrentTallyState()
 {
     if (_pimpl->_lastTallyResponse == 0 ||
         _pimpl->_currentTally == 0 ||
-        _pimpl->_lastTallyResponse.length() <= _pimpl->_currentTally)
+        _pimpl->_lastTallyResponse.length() - 1 <= _pimpl->_currentTally)
     {
         return TALLY_NONE;
     }
@@ -136,4 +136,5 @@ unsigned short VmixManager::getCurrentTallyNumber()
 void VmixManager::setCurrentTallyNumber(unsigned short tally)
 {
     _pimpl->_currentTally = tally;
+    this->onTallyStateChange.fire(this->getCurrentTallyState());
 }

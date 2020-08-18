@@ -17,11 +17,12 @@ class TallyScreen : public Screen
 {
 public:
     TallyScreen(AppContext &context, bool isHighViz) : Screen(this, context),
-                                                       _isHighVizMode(isHighViz)
+                                                       _isHighVizMode(isHighViz),
+                                                       _tallyStateChangedListener(this, &TallyScreen::handleTallyStateChanged)
+
     {
         this->_vmix = this->_context->getVmixManager();
-        MethodSlot<TallyScreen, char> tallyStateChangedListener(this, &TallyScreen::handleTallyStateChanged);
-        this->_vmix->onTallyStateChange.attach(tallyStateChangedListener);
+        this->_vmix->onTallyStateChange.attach(this->_tallyStateChangedListener);
     }
 
     ~TallyScreen()
@@ -35,21 +36,17 @@ public:
         this->_isShowing = screenId == this->getId();
     }
 
-    void handleTallyStateChanged(char tallyState)
-    {
-        refresh();
-    }
-
     void show()
     {
         this->_isShowing = true;
-        refresh();
+        this->_isLandscape = true;
+        auto settings = this->_context->getSettings();
+        this->_vmix->setCurrentTallyNumber(settings->getVmixTally()); // also triggers refresh
     }
 
     void refresh()
     {
-        this->_tallyState = this->_vmix->getCurrentTallyState();
-        this->_tally = this->_vmix->getCurrentTallyNumber();
+        Serial.printf("DEBUG: TallyScreen::refresh tally=%d, tallyState=%c\n", this->_tally, this->_tallyState);
 
         if (!this->_isShowing)
             return;
@@ -75,11 +72,14 @@ public:
 
     void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
     {
-        if (this->_orientation == LANDSCAPE)
+        if (this->_isLandscape)
         {
             if (m5Btn.isSingleClick())
             {
+                Serial.println("DEBUG: TallyScreen::handleInput Changing orientation to portrait");
+                this->_isLandscape = false;
                 this->sendOrientationChange.fire(PORTRAIT);
+                this->refresh();
             }
             else if (m5Btn.isLongClick())
             {
@@ -106,11 +106,13 @@ public:
             }
             else if (sideBtn.isDoubleClick())
             {
+                // TODO update settings too
                 this->_vmix->setCurrentTallyNumber(this->_tally + 1);
                 refresh();
             }
             else if (sideBtn.isLongClick())
             {
+                // TODO update settings too
                 this->_vmix->setCurrentTallyNumber(1);
                 refresh();
             }
@@ -118,6 +120,14 @@ public:
     }
 
 private:
+
+    void handleTallyStateChanged(char tallyState)
+    {
+        this->_tallyState = tallyState;
+        this->_tally = this->_vmix->getCurrentTallyNumber();
+        this->refresh();
+    }
+
     void renderTallyText(const char *text)
     {
         this->sendOrientationChange.fire(LANDSCAPE);
@@ -162,7 +172,7 @@ private:
             this->sendColorChange.fire(Colors(RED, BLACK));
         }
 
-        if (this->_orientation == LANDSCAPE)
+        if (this->_isLandscape)
         {
             renderTallyText("LIVE");
         }
@@ -187,7 +197,7 @@ private:
             this->sendColorChange.fire(Colors(GREEN, BLACK));
         }
 
-        if (this->_orientation == LANDSCAPE)
+        if (this->_isLandscape)
         {
             renderTallyText("PRE");
         }
@@ -204,7 +214,7 @@ private:
         M5.Lcd.fillScreen(BLACK);
         this->sendColorChange.fire(Colors(WHITE, BLACK));
 
-        if (this->_orientation == LANDSCAPE)
+        if (this->_isLandscape)
         {
             renderTallyText("SAFE");
         }
@@ -229,7 +239,7 @@ private:
             this->sendColorChange.fire(Colors(YELLOW, BLACK));
         }
 
-        if (this->_orientation == LANDSCAPE)
+        if (this->_isLandscape)
         {
             renderTallyText("????");
         }
@@ -245,8 +255,9 @@ private:
     }
 
     bool _isHighVizMode;
-    unsigned short _orientation;
+    bool _isLandscape;
     bool _isShowing;
+    MethodSlot<TallyScreen, char> _tallyStateChangedListener;
 
     VmixManager *_vmix;
     unsigned char _tallyState;

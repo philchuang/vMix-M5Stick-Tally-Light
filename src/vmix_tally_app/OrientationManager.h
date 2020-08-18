@@ -1,5 +1,5 @@
-#define LANDSCAPE 0
-#define PORTRAIT  1
+#define LANDSCAPE 0u
+#define PORTRAIT  1u
 
 #ifndef ORIENTATIONMANAGER_H
 #define ORIENTATIONMANAGER_H

@@ -5,7 +5,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define HIGH_VIZ_MODE 1
+#define HIGH_VIZ_MODE 0
 #define CLEAR_SETTINGS_ON_LOAD false
 #define LOG_BATTERY false
 #define PREPARE_BATTERY_LOGGING false
