@@ -128,6 +128,7 @@ void ScreenManager::add(Screen *screen)
 void ScreenManager::onOrientationChange(unsigned short orientation)
 {
     // this->sendOrientationChange.fire(orientation);
+    Serial.printf("DEBUG: ScreenManager::onOrientationChange(%d)\n", orientation);
     _pimpl->_orientationMgr.setOrientation(orientation);
 }
 

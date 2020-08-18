@@ -84,6 +84,7 @@ bool OrientationManager::getOrientation()
 void OrientationManager::setOrientation(bool isPortrait)
 {
     _pimpl->_isPortrait = isPortrait;
+    this->setRotation(this->checkRotationChange(0));
 }
 
 short OrientationManager::getRotation()
@@ -98,6 +99,6 @@ void OrientationManager::setRotation(short rotation)
         return;
     }
 
-    Serial.printf("DEBUG: setRotation %d\n", rotation);
+    Serial.printf("DEBUG: OrientationManager::setRotation(%d)\n", rotation);
     M5.Lcd.setRotation(rotation);
 }

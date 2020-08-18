@@ -24,12 +24,6 @@ public:
 
     void show()
     {
-        this->refresh();
-        delay(2000);
-    }
-
-    void refresh()
-    {
         M5.Lcd.fillScreen(TFT_BLACK);
 
         this->sendOrientationChange.fire(LANDSCAPE);
@@ -60,6 +54,11 @@ public:
         // display instructions
         M5.Lcd.println("Press M5 button to retry.");
         M5.Lcd.println("Press side button to switch settings.");
+    }
+
+    void refresh()
+    {
+        // does nothing
     }
 
     void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)

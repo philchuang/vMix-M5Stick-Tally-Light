@@ -19,14 +19,6 @@ public:
 
     void show()
     {
-        this->refresh();
-        delay(2000);
-        this->_context->loadSettings(0);
-        this->sendScreenChange.fire(SCREEN_CONN);
-    }
-
-    void refresh()
-    {
         this->sendOrientationChange.fire(LANDSCAPE);
         this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
         M5.Lcd.fillScreen(TFT_BLACK);
@@ -34,6 +26,15 @@ public:
         M5.Lcd.drawString("vMix M5Stick-C Tally", 80, 15, 2);
         M5.Lcd.drawString("by Phil Chuang", 80, 35, 1);
         M5.Lcd.drawString("& Guido Visser", 80, 55, 1);
+
+        delay(2000);
+        this->_context->loadSettings(0);
+        this->sendScreenChange.fire(SCREEN_CONN);
+    }
+
+    void refresh()
+    {
+        // does nothing
     }
 
     void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)

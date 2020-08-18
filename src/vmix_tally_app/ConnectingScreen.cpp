@@ -49,63 +49,20 @@ public:
 
         if (!this->_isConnectingWifi && !this->_wifiMgr->isAlive())
         {
-            this->_context->setIsWifiConnected(false);
-            this->_context->setIsVmixConnected(false);
-            this->_numRetries = 0;
-
-            const char *ssid = this->_settings->getWifiSsid();
-            const char *passphrase = this->_settings->getWifiPassphrase();
-
-            Serial.printf("SSID: %s\n", ssid);
-            Serial.printf("Pass: %s\n", passphrase);
-            Serial.printf("Connecting to %s with %s...", ssid, passphrase);
-
-            this->sendOrientationChange.fire(LANDSCAPE);
-            this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
-            M5.Lcd.fillScreen(TFT_BLACK);
-            M5.Lcd.setCursor(0, 0);
-            M5.Lcd.setTextSize(1);
-            M5.Lcd.print("Connecting to WiFi...");
-
-            this->_wifiMgr->connect(ssid, passphrase);
-            this->_pollReconnectWifiTimer.setNextExecute(millis());
-            this->_isConnectingWifi = true;
+            showConnectingWifiScreen();
             return;
         }
 
         if (!this->_isConnectingVmix && !this->_vmixMgr->isAlive())
         {
-            this->_context->setIsVmixConnected(false);
-            this->_context->setTallyState(TALLY_NONE);
-            this->_numRetries = 0;
-
-            if (!this->_wifiMgr->isAlive())
-            {
-                this->_isConnectingWifi = false;
-                this->show();
-                return;
-            }
-
-            this->sendOrientationChange.fire(LANDSCAPE);
-            this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
-            M5.Lcd.fillScreen(TFT_BLACK);
-            M5.Lcd.setCursor(0, 0);
-            M5.Lcd.setTextSize(1);
-            Serial.println("Connecting to vMix...");
-            M5.Lcd.println("Connecting to vMix...");
-
-            auto addr = this->_settings->getVmixAddress();
-            auto port = this->_settings->getVmixPort();
-
-            this->_vmixMgr->connect(addr, port);
-            this->_pollReconnectVmixTimer.setNextExecute(millis());
-            this->_isConnectingVmix = true;
+            showConnectingVmixScreen();
             return;
         }
 
         if (this->_wifiMgr->isAlive() && this->_vmixMgr->isAlive())
         {
             this->sendScreenChange.fire(SCREEN_TALLY);
+            return;
         }
     }
 
@@ -139,6 +96,61 @@ private:
 
     WifiManager *_wifiMgr;
     VmixManager *_vmixMgr;
+
+    void showConnectingWifiScreen()
+    {
+        this->_context->setIsWifiConnected(false);
+        this->_context->setIsVmixConnected(false);
+        this->_numRetries = 0;
+
+        const char *ssid = this->_settings->getWifiSsid();
+        const char *passphrase = this->_settings->getWifiPassphrase();
+
+        this->sendOrientationChange.fire(LANDSCAPE);
+        this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
+        M5.Lcd.fillScreen(TFT_BLACK);
+        M5.Lcd.setCursor(0, 0);
+        M5.Lcd.setTextSize(1);
+        M5.Lcd.print("Connecting to WiFi...");
+
+        Serial.printf("SSID: %s\n", ssid);
+        Serial.printf("Pass: %s\n", passphrase);
+        Serial.printf("Connecting to %s with %s...", ssid, passphrase);
+
+        this->_wifiMgr->connect(ssid, passphrase);
+        this->_pollReconnectWifiTimer.setNextExecute(millis());
+        this->_isConnectingWifi = true;
+    }
+
+    void showConnectingVmixScreen()
+    {
+        this->_context->setIsVmixConnected(false);
+        this->_context->setTallyState(TALLY_NONE);
+        this->_numRetries = 0;
+
+        if (!this->_wifiMgr->isAlive())
+        {
+            this->_isConnectingWifi = false;
+            this->show();
+            return;
+        }
+
+        auto addr = this->_settings->getVmixAddress();
+        auto port = this->_settings->getVmixPort();
+
+        this->sendOrientationChange.fire(LANDSCAPE);
+        this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
+        M5.Lcd.fillScreen(TFT_BLACK);
+        M5.Lcd.setCursor(0, 0);
+        M5.Lcd.setTextSize(1);
+        M5.Lcd.print("Connecting to vMix...");
+
+        Serial.printf("Connecting to vMix at %s:%d...", addr, port);
+
+        this->_vmixMgr->connect(addr, port);
+        this->_pollReconnectVmixTimer.setNextExecute(millis());
+        this->_isConnectingVmix = true;
+    }
 
     void pollReconnectWifi(unsigned long timestamp)
     {
