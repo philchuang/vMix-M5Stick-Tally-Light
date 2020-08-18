@@ -9,12 +9,12 @@
 #include <string>
 
 // constants
-#define VMIX_API_SUBSCRIBE_TALLY "SUBSCRIBE TALLY\r\n"
+#define VMIX_API_SUBSCRIBE_TALLY "SUBSCRIBE TALLY\n"
 #define VMIX_API_SUBSCRIBE_TALLY_RESPONSE_PREFIX "SUBSCRIBE OK TALLY Subscribed"
-#define VMIX_API_GET_TALLY "TALLY\r\n"
+#define VMIX_API_GET_TALLY "TALLY\n"
 #define VMIX_API_GET_TALLY_RESPONSE_PREFIX "TALLY OK "
 #define VMIX_API_GET_VERSION_RESPONSE_PREFIX "VERSION OK "
-#define VMIX_API_FUNCTION_QUICKPLAY_INPUT "FUNCTION QuickPlay Input=%d\r\n"
+#define VMIX_API_FUNCTION_QUICKPLAY_INPUT "FUNCTION QuickPlay Input=%d\n"
 #define VMIX_API_FUNCTION_QUICKPLAY_INPUT_RESPONSE "FUNCTION OK COMPLETED"
 
 struct VmixManager::Impl
@@ -51,7 +51,6 @@ bool VmixManager::connect(const char *addr, unsigned short port)
 
 bool VmixManager::isAlive()
 {
-        Serial.println("DEBUG: VmixManager::isAlive");
     return _pimpl->_vmix_client.connected();
 }
 
@@ -62,14 +61,13 @@ void VmixManager::disconnect()
 
 void VmixManager::receiveInput()
 {
-        Serial.println("DEBUG: VmixManager::receiveInput");
     if (!_pimpl->_vmix_client.available())
     {
         return;
     }
 
     String data = _pimpl->_vmix_client.readStringUntil('\r\n');
-    Serial.printf("VMIX: %s\n", data.c_str());
+    Serial.printf("VMIX recv: %s\n", data.c_str());
 
     if (data.indexOf(VMIX_API_GET_TALLY_RESPONSE_PREFIX) == 0)
     {
@@ -97,7 +95,11 @@ void VmixManager::receiveInput()
 
 void VmixManager::sendSubscribeTally()
 {
-    _pimpl->_vmix_client.println(VMIX_API_SUBSCRIBE_TALLY);
+    if (!_pimpl->_vmix_client.connected())
+        return;
+
+    Serial.printf("VMIX send: %s\n", VMIX_API_SUBSCRIBE_TALLY);
+    _pimpl->_vmix_client.printf(VMIX_API_SUBSCRIBE_TALLY);
 }
 
 void VmixManager::sendQuickPlayInput(unsigned short tallyNr)
@@ -105,6 +107,9 @@ void VmixManager::sendQuickPlayInput(unsigned short tallyNr)
     if (!_pimpl->_vmix_client.connected())
         return;
 
+    Serial.printf("VMIX send: ");
+    Serial.printf(VMIX_API_FUNCTION_QUICKPLAY_INPUT, tallyNr);
+    Serial.println();
     _pimpl->_vmix_client.printf(VMIX_API_FUNCTION_QUICKPLAY_INPUT, tallyNr);
 }
 

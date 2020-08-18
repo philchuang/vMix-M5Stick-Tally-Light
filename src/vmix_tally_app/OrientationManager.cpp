@@ -98,5 +98,6 @@ void OrientationManager::setRotation(short rotation)
         return;
     }
 
+    Serial.printf("DEBUG: setRotation %d\n", rotation);
     M5.Lcd.setRotation(rotation);
 }

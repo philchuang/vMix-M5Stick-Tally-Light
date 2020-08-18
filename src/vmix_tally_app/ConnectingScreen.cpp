@@ -4,6 +4,7 @@
 #include <M5StickC.h>
 
 // libraries
+#include <memory>
 #include <PinButton.h>
 
 // app
@@ -13,15 +14,20 @@
 #include "WifiManager.h"
 
 // constants
-#define NUM_WAITS 10
-#define WAIT_INTERVAL_MS 1000
+#define NUM_RETRIES 10
+#define WAIT_INTERVAL_MS 1000u
 #define WIFI_ERROR "Could not connect to wifi!"
 #define VMIX_ERROR "Could not connect to vMix!"
 
 class ConnectingScreen : public Screen
 {
 public:
-    ConnectingScreen(AppContext &context) : Screen(this, context)
+    ConnectingScreen(AppContext &context) : Screen(this, context),
+                                            _settings(context.getSettings()),
+                                            _pollReconnectWifiDelegate(this, &ConnectingScreen::pollReconnectWifi),
+                                            _pollReconnectWifiTimer(_pollReconnectWifiDelegate, WAIT_INTERVAL_MS),
+                                            _pollReconnectVmixDelegate(this, &ConnectingScreen::pollReconnectVmix),
+                                            _pollReconnectVmixTimer(_pollReconnectVmixDelegate, WAIT_INTERVAL_MS)
     {
         this->_wifiMgr = _context->getWifiManager();
         this->_vmixMgr = _context->getVmixManager();
@@ -29,6 +35,7 @@ public:
 
     ~ConnectingScreen()
     {
+        delete this->_settings;
         delete this->_wifiMgr;
         delete this->_vmixMgr;
     }
@@ -40,19 +47,66 @@ public:
         this->sendOrientationChange.fire(LANDSCAPE);
         M5.Lcd.fillScreen(TFT_BLACK);
 
-        if (!reconnectWifi())
+        if (!this->_isConnectingWifi && !this->_wifiMgr->isAlive())
         {
-            this->sendShowFatalErrorScreen.fire(WIFI_ERROR);
+            this->_context->setIsWifiConnected(false);
+            this->_context->setIsVmixConnected(false);
+            this->_numRetries = 0;
+
+            const char *ssid = this->_settings->getWifiSsid();
+            const char *passphrase = this->_settings->getWifiPassphrase();
+
+            Serial.printf("SSID: %s\n", ssid);
+            Serial.printf("Pass: %s\n", passphrase);
+            Serial.printf("Connecting to %s with %s...", ssid, passphrase);
+
+            this->sendOrientationChange.fire(LANDSCAPE);
+            this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
+            M5.Lcd.fillScreen(TFT_BLACK);
+            M5.Lcd.setCursor(0, 0);
+            M5.Lcd.setTextSize(1);
+            M5.Lcd.print("Connecting to WiFi...");
+
+            this->_wifiMgr->connect(ssid, passphrase);
+            this->_pollReconnectWifiTimer.setNextExecute(millis());
+            this->_isConnectingWifi = true;
             return;
         }
 
-        if (!reconnectVmix())
+        if (!this->_isConnectingVmix && !this->_vmixMgr->isAlive())
         {
-            this->sendShowFatalErrorScreen.fire(VMIX_ERROR);
+            this->_context->setIsVmixConnected(false);
+            this->_context->setTallyState(TALLY_NONE);
+            this->_numRetries = 0;
+
+            if (!this->_wifiMgr->isAlive())
+            {
+                this->_isConnectingWifi = false;
+                this->show();
+                return;
+            }
+
+            this->sendOrientationChange.fire(LANDSCAPE);
+            this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
+            M5.Lcd.fillScreen(TFT_BLACK);
+            M5.Lcd.setCursor(0, 0);
+            M5.Lcd.setTextSize(1);
+            Serial.println("Connecting to vMix...");
+            M5.Lcd.println("Connecting to vMix...");
+
+            auto addr = this->_settings->getVmixAddress();
+            auto port = this->_settings->getVmixPort();
+
+            this->_vmixMgr->connect(addr, port);
+            this->_pollReconnectVmixTimer.setNextExecute(millis());
+            this->_isConnectingVmix = true;
             return;
         }
 
-        this->sendScreenChange.fire(SCREEN_TALLY);
+        if (this->_wifiMgr->isAlive() && this->_vmixMgr->isAlive())
+        {
+            this->sendScreenChange.fire(SCREEN_TALLY);
+        }
     }
 
     void refresh()
@@ -62,115 +116,94 @@ public:
 
     void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
     {
-        // does nothing
+        if (this->_isConnectingWifi)
+        {
+            this->_pollReconnectWifiTimer.execute(timestamp);
+        }
+        else if (this->_isConnectingVmix)
+        {
+            this->_pollReconnectVmixTimer.execute(timestamp);
+        }
     }
 
 private:
-    bool reconnectWifi()
+    bool _isConnectingWifi = false;
+    bool _isConnectingVmix = false;
+    int _numRetries = 0;
+    AppSettings *_settings;
+
+    MethodSlot<ConnectingScreen, unsigned long> _pollReconnectWifiDelegate;
+    SlotLoopEvent _pollReconnectWifiTimer;
+    MethodSlot<ConnectingScreen, unsigned long> _pollReconnectVmixDelegate;
+    SlotLoopEvent _pollReconnectVmixTimer;
+
+    WifiManager *_wifiMgr;
+    VmixManager *_vmixMgr;
+
+    void pollReconnectWifi(unsigned long timestamp)
     {
-        this->_context->setIsWifiConnected(false);
-        this->_context->setIsVmixConnected(false);
+        if (!this->_isConnectingWifi)
+            return;
 
-        auto settings = this->_context->getSettings();
-
-        const char *ssid = settings->getWifiSsid();
-        const char *passphrase = settings->getWifiPassphrase();
-
-        Serial.printf("SSID: %s\n", ssid);
-        Serial.printf("Pass: %s\n", passphrase);
-        Serial.printf("Connecting to %s with %s...", ssid, passphrase);
-
-        this->sendOrientationChange.fire(LANDSCAPE);
-        this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
-        M5.Lcd.fillScreen(TFT_BLACK);
-        M5.Lcd.setCursor(0, 0);
-        M5.Lcd.setTextSize(1);
-        M5.Lcd.print("Connecting to WiFi...");
-
-        this->_wifiMgr->connect(ssid, passphrase);
-
-        byte timeout = NUM_WAITS;
-        while (!this->_wifiMgr->isAlive() && timeout > 0)
+        if (!this->_wifiMgr->isAlive())
         {
-            delay(WAIT_INTERVAL_MS);
-            timeout--;
+            this->_numRetries++;
+            if (this->_numRetries == NUM_RETRIES)
+            {
+                Serial.println();
+                M5.Lcd.println();
+                this->_isConnectingWifi = false;
+                this->sendShowFatalErrorScreen.fire("Unable to connect to wifi!");
+                return;
+            }
             Serial.print(".");
             M5.Lcd.print(".");
+            this->_pollReconnectWifiTimer.setNextExecute(timestamp + WAIT_INTERVAL_MS);
+            return;
         }
         Serial.println();
         M5.Lcd.println();
 
-        if (this->_wifiMgr->isAlive())
-        {
-            this->_context->setIsWifiConnected(true);
+        Serial.println("Connected!");
+        M5.Lcd.println("Connected!");
+        Serial.print("IP: ");
+        Serial.println(this->_wifiMgr->localIP());
 
-            Serial.println("Connected!");
-            M5.Lcd.println("Connected!");
-            Serial.print("IP: ");
-            Serial.println(this->_wifiMgr->localIP());
-            return true;
-        }
-
-        Serial.printf("Unable to connect to %s!\n", ssid);
-        M5.Lcd.printf("Unable to connect to %s!\n", ssid);
-
-        return false;
+        this->_context->setIsWifiConnected(true);
+        this->_isConnectingWifi = false;
+        this->show();
     }
 
-    bool reconnectVmix()
+    void pollReconnectVmix(unsigned long timestamp)
     {
-        this->_context->setIsVmixConnected(false);
-        this->_context->setTallyState(TALLY_NONE);
-
-        auto settings = this->_context->getSettings();
-
-        if (!this->_context->getIsWifiConnected())
-        {
-            if (!reconnectWifi())
-            {
-                return false;
-            }
-        }
-
-        this->sendOrientationChange.fire(LANDSCAPE);
-        this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
-        M5.Lcd.fillScreen(TFT_BLACK);
-        M5.Lcd.setCursor(0, 0);
-        M5.Lcd.setTextSize(1);
-        Serial.println("Connecting to vMix...");
-        M5.Lcd.println("Connecting to vMix...");
-
-        auto addr = this->_context->getSettings()->getVmixAddress();
-        auto port = this->_context->getSettings()->getVmixPort();
-
-        byte timeout = NUM_WAITS;
-        while (!this->_vmixMgr->connect(addr, port) && timeout > 0)
-        {
-            delay(WAIT_INTERVAL_MS);
-            timeout--;
-            Serial.print(".");
-            M5.Lcd.print(".");
-        }
-        Serial.println();
-        M5.Lcd.println();
+        if (!this->_isConnectingVmix)
+            return;
 
         if (!this->_vmixMgr->isAlive())
         {
-            Serial.println("Unable to connect to vMix!");
-            M5.Lcd.println("Unable to connect to vMix!");
-            return false;
+            this->_numRetries++;
+            if (this->_numRetries == NUM_RETRIES)
+            {
+                Serial.println();
+                M5.Lcd.println();
+                this->_isConnectingVmix = false;
+                this->sendShowFatalErrorScreen.fire("Unable to connect to vMix!");
+                return;
+            }
+            Serial.print(".");
+            M5.Lcd.print(".");
+            this->_pollReconnectVmixTimer.setNextExecute(timestamp + WAIT_INTERVAL_MS);
+            return;
         }
+        Serial.println();
+        M5.Lcd.println();
 
         this->_context->setIsVmixConnected(true);
+        this->_isConnectingVmix = false;
 
         Serial.println("Connection opened.");
         Serial.println("Subscribing to tally events...");
         this->_vmixMgr->sendSubscribeTally();
-
-        return true;
+        this->show();
     }
-
-    // local pointers to connection state
-    WifiManager *_wifiMgr;
-    VmixManager *_vmixMgr;
 };
