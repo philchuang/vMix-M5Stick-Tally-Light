@@ -194,15 +194,18 @@ Screen *ScreenManager::getCurrent()
 
 void ScreenManager::show(unsigned short screenId)
 {
-    Serial.printf("DEBUG: show %d\n", screenId);
+    Serial.printf("DEBUG: ScreenManager::show(%d)\n", screenId);
     _pimpl->_currentScreen = screenId;
     _pimpl->_sendScreenChanged.fire(screenId);
     _pimpl->_context->setCurrentScreen(screenId);
     auto screen = this->getCurrent();
-    if (screen != nullptr)
+    if (screen == nullptr)
     {
-        screen->show();
+        Serial.printf("DEBUG: ScreenManager::show(%d) - no screen #%d! \n", screenId, screenId);
+        return;
     }
+    
+    screen->show();
 }
 
 void ScreenManager::refresh()

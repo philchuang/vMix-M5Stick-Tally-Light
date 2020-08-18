@@ -20,20 +20,24 @@ public:
 
     void show()
     {
+        Serial.println("DEBUG: SettingsScreen::show()");
+        this->sendOrientationChange.fire(LANDSCAPE);
+        this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
         this->refresh();
     }
 
     void refresh()
     {
+        Serial.println("DEBUG: SettingsScreen::refresh()");
         auto settingsIdx = this->_context->getSettingsIdx();
         auto numSettings = this->_context->getNumSettings();
         auto settings = this->_context->getSettings();
         auto settingsMgr = this->_context->getSettingsManager();
 
-        this->sendOrientationChange.fire(LANDSCAPE);
-        this->sendColorChange.fire(Colors(TFT_WHITE, TFT_BLACK));
         M5.Lcd.fillScreen(TFT_BLACK);
         M5.Lcd.setTextDatum(MC_DATUM);
+        M5.Lcd.setTextSize(1);
+        M5.Lcd.setCursor(0, 0);
 
         M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx + 1, numSettings);
         M5.Lcd.printf("-SSID: %s\n", settings->getWifiSsid());
@@ -79,6 +83,7 @@ public:
         }
         if (sideBtn.isLongClick())
         {
+            // TODO fix, doesn't reset connections, thus skips screen_conn
             Serial.println("Swapping settings...");
             this->_context->cycleSettings();
             Serial.println("Settings swapped!");
