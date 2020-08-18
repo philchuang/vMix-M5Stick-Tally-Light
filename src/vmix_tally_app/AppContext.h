@@ -38,6 +38,9 @@ public:
     AppSettings *cycleSettings();
     // TODO saveSettings(AppSettings &settings);
 
+    unsigned short getCurrentScreen();
+    void setCurrentScreen(unsigned short screenId);
+
     WifiManager *getWifiManager();
     // state accessors
     bool getIsWifiConnected();

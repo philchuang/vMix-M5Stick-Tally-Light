@@ -58,6 +58,8 @@ struct AppContext::Impl
     unsigned short _appSettingsIdx;
     AppSettings _appSettings;
 
+    unsigned short _currentScreen;
+
     WifiManager _wifiMgr;
     bool _isWifiConnected;
     unsigned int _numReconnections;
@@ -182,6 +184,16 @@ AppSettings *AppContext::cycleSettings()
     return this->loadSettings(idx);
 }
 
+unsigned short AppContext::getCurrentScreen()
+{
+    return _pimpl->_currentScreen;
+}
+
+void AppContext::setCurrentScreen(unsigned short currentScreen)
+{
+    _pimpl->_currentScreen = currentScreen;
+}
+
 WifiManager *AppContext::getWifiManager()
 {
     return &(_pimpl->_wifiMgr);
@@ -298,26 +310,27 @@ void AppContext::checkVmixResponse(unsigned long timestamp)
 {
     if (_pimpl->_isVmixConnected)
     {
-        Serial.println("DEBUG: checkVmixResponse");
         _pimpl->_vmixMgr.receiveInput();
     }
 }
 
 void AppContext::checkVmixConnection(unsigned long timestamp)
 {
-    if ((!_pimpl->_isWifiConnected && !_pimpl->_isVmixConnected) || _pimpl->_isErrorFatal)
+    if (_pimpl->_currentScreen == SCREEN_ERROR ||
+        _pimpl->_currentScreen == SCREEN_SPLASH ||
+        _pimpl->_currentScreen == SCREEN_CONN ||
+        (!_pimpl->_isWifiConnected && !_pimpl->_isVmixConnected) ||
+        _pimpl->_isErrorFatal)
     {
         return;
     }
 
-        Serial.println("DEBUG: checkVmixConnection 1");
     if (!_pimpl->_wifiMgr.isAlive())
     {
         Serial.println("Disconnected from wifi, reconnecting...");
         this->sendScreenChange.fire(SCREEN_CONN);
     }
 
-    Serial.println("DEBUG: checkVmixConnection 2");
     if (!_pimpl->_vmixMgr.isAlive())
     {
         Serial.println("Disconnected from vMix, reconnecting...");
