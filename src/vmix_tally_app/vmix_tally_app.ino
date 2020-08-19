@@ -37,8 +37,8 @@
 // globals
 AppContext _context;
 ScreenManager _screenMgr(_context, MAX_SCREENS);
-PinButton btnM5(37);
-PinButton btnSide(39);
+PinButton btnM5(BTN_M5);
+PinButton btnSide(BTN_SIDE);
 bool _saveUptimeInfo = false; // TEMPORARY
 
 void setup()
