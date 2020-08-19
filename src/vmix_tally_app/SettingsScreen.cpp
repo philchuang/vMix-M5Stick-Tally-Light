@@ -83,8 +83,9 @@ public:
         }
         if (sideBtn.isLongClick())
         {
-            // TODO fix, doesn't reset connections, thus skips screen_conn
             Serial.println("Swapping settings...");
+            this->_context->getVmixManager()->disconnect();
+            this->_context->getWifiManager()->disconnect();
             this->_context->cycleSettings();
             Serial.println("Settings swapped!");
             this->sendScreenChange.fire(SCREEN_CONN);
