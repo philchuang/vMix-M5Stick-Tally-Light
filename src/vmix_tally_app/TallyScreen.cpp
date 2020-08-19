@@ -106,24 +106,29 @@ public:
             }
             else if (sideBtn.isDoubleClick())
             {
-                // TODO update settings too
-                this->_vmix->setCurrentTallyNumber(this->_tally + 1);
-                refresh();
+                this->changeTally(this->_tally + 1);
             }
             else if (sideBtn.isLongClick())
             {
-                // TODO update settings too
-                this->_vmix->setCurrentTallyNumber(1);
-                refresh();
+                this->changeTally(1);
             }
         }
     }
 
 private:
+    void changeTally(unsigned short newTally)
+    {
+        this->_tally = newTally;
+        this->_context->getSettings()->setVmixTally(newTally);
+        this->_context->saveSettings();
+        this->_vmix->setCurrentTallyNumber(newTally);
+        this->refresh();
+    }
 
     void handleTallyStateChanged(char tallyState)
     {
         this->_tallyState = tallyState;
+        this->_context->setTallyState(tallyState);
         this->_tally = this->_vmix->getCurrentTallyNumber();
         this->refresh();
     }

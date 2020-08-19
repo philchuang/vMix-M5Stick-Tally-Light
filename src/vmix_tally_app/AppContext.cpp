@@ -184,6 +184,11 @@ AppSettings *AppContext::cycleSettings()
     return this->loadSettings(idx);
 }
 
+void AppContext::saveSettings()
+{
+    _pimpl->_appSettingsMgr.save(_pimpl->_appSettingsIdx, _pimpl->_appSettings);
+}
+
 unsigned short AppContext::getCurrentScreen()
 {
     return _pimpl->_currentScreen;

@@ -36,7 +36,7 @@ public:
     // related functions
     AppSettings *loadSettings(unsigned short settingsIdx);
     AppSettings *cycleSettings();
-    // TODO saveSettings(AppSettings &settings);
+    void saveSettings();
 
     unsigned short getCurrentScreen();
     void setCurrentScreen(unsigned short screenId);
