@@ -78,24 +78,24 @@ Using the IDE, compile and upload to your M5StickC.
 * [ ]  Detect and indicate when battery is fully charged
 * [ ]  Battery logging
 * [ ]  Restore last used settings on boot (instead of just #1) OR ability to select settings on boot
-* [*]  Continued cleanup and refactor of logic - event-driven model
+* [x]  Continued cleanup and refactor of logic - event-driven model
 * [ ]  Hard-reset capability from settings or error screen
 * [ ]  Access Point mode when not connected to a WiFi network
 * [ ]  Webserver for easy configuration
 * [ ]  Screens revamp:
-  * [*]  Splash screen
-    * [*]  Delay then switch to Connection screen
-  * [*]  Connection screen
-    * [*]  Connect to wifi, then vmix
-    * [*]  If successful, switch to Tally screen
-    * [*]  else, switch to Connection Error screen
-    * [*]  Connection Error screen
-      * [*]  Display WiFI & vMix settings
-      * [*]  M5 short-press to switch to retry
-      * [*]  Side short-press to cycle connection settings and retry
-  * [*]  Tally screen
+  * [x]  Splash screen
+    * [x]  Delay then switch to Connection screen
+  * [x]  Connection screen
+    * [x]  Connect to wifi, then vmix
+    * [x]  If successful, switch to Tally screen
+    * [x]  else, switch to Connection Error screen
+    * [x]  Connection Error screen
+      * [x]  Display WiFI & vMix settings
+      * [x]  M5 short-press to switch to retry
+      * [x]  Side short-press to cycle connection settings and retry
+  * [x]  Tally screen
     * [ ]  show status in landscape, number in portrait
-    * [*]  M5 short-press to switch to Settings screen
+    * [x]  M5 short-press to switch to Settings screen
     * [ ]  M5 long-press to enter brightness mode
       * [ ]  M5 short-press to cycle brightness
       * [ ]  Side short-press to toggle high viz
@@ -103,8 +103,8 @@ Using the IDE, compile and upload to your M5StickC.
       * [ ]  M5 long-press to exit brightness mode
     * [ ]  Side short-press?
     * [ ]  Side long-press to QuickPlay after 1s delay 
-  * [*]  Settings screen
-    * [*]  M5 short-press to switch to Tally screen
+  * [x]  Settings screen
+    * [x]  M5 short-press to switch to Tally screen
     * [ ]  M5 long-press to enter settings edit mode
       * [ ]  M5 short-press to cycle through setting screens (settings index, tally number)
       * [ ]  Side short-press to cycle through setting values
