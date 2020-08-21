@@ -71,6 +71,10 @@ Using the IDE, compile and upload to your M5StickC.
     1. M5 button single-click: display the tally status screen
     1. Side button long-click: load next settings and restart
 
+## ISSUES
+
+1. Screen does not indicate when vmix/wifi is disconnected and reconnection is being attempted.
+
 ## TODO
 
 * [ ]  Use Preferences.h instead of EEPROM.h for settings (maybe keep EEPROM for last used settings & tracking)
