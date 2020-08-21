@@ -23,7 +23,6 @@
 #include "BatteryManager.h"
 #include "Constants.h"
 #include "Configuration.h"
-#include "LoopEvent.h"
 #include "OrientationManager.h"
 #include "Screen.h"
 #include "ScreenManager.h"

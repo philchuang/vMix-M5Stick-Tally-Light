@@ -77,6 +77,7 @@ Using the IDE, compile and upload to your M5StickC.
 
 ## TODO
 
+* [ ]  Store uptime info as current + last, copy from current to last on startup
 * [ ]  Use Preferences.h instead of EEPROM.h for settings (maybe keep EEPROM for last used settings & tracking)
 * [ ]  Battery indicator on all screens
 * [ ]  Detect and indicate when battery is fully charged

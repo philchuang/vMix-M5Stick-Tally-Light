@@ -40,11 +40,11 @@ public:
         M5.Lcd.setCursor(0, 0);
 
         M5.Lcd.printf("SETTINGS: %d/%d\n", settingsIdx + 1, numSettings);
-        M5.Lcd.printf("-SSID: %s\n", settings->getWifiSsid());
-        M5.Lcd.printf("-IP: ");
+        M5.Lcd.printf(" SSID: %s\n", settings->getWifiSsid());
+        M5.Lcd.printf(" IP: ");
         M5.Lcd.println(this->_context->getWifiManager()->localIP());
-        M5.Lcd.printf("-vMix: %s\n", settings->getVmixAddressWithPort());
-        M5.Lcd.printf("-TALLY: %d\n", settings->getVmixTally());
+        M5.Lcd.printf(" vMix: %s\n", settings->getVmixAddressWithPort());
+        M5.Lcd.printf(" TALLY: %d\n", settings->getVmixTally());
 
         unsigned long timestamp = millis();
         unsigned long hours = timestamp / 1000 / 60 / 60;
