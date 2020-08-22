@@ -63,13 +63,10 @@ public:
         timestamp = settingsMgr->getLastUptime();
         double lastBatteryLevel = settingsMgr->getLastBatteryLevel();
 
-        if (LOG_BATTERY)
-        {
-            hours = timestamp / 1000 / 60 / 60;
-            minutes = (timestamp - (hours * 1000 * 60 * 60)) / 1000 / 60;
-            seconds = (timestamp - (hours * 1000 * 60 * 60) - (minutes * 1000 * 60)) / 1000;
-            M5.Lcd.printf("LAST RUN: %02u:%02u:%02u up, %.0f%% batt\n", hours, minutes, seconds, lastBatteryLevel);
-        }
+        hours = timestamp / 1000 / 60 / 60;
+        minutes = (timestamp - (hours * 1000 * 60 * 60)) / 1000 / 60;
+        seconds = (timestamp - (hours * 1000 * 60 * 60) - (minutes * 1000 * 60)) / 1000;
+        M5.Lcd.printf("LAST RUN: %02u:%02u:%02u up, %.0f%% batt\n", hours, minutes, seconds, lastBatteryLevel);
 
         M5.Lcd.println();
         M5.Lcd.println("Hold side btn to swap settings.");
