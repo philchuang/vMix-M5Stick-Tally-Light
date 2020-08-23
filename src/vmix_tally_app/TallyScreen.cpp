@@ -17,11 +17,11 @@ class TallyScreen : public Screen
 {
 public:
     TallyScreen(AppContext &context, bool isHighViz, unsigned long tallyQuickPlayDelayMs) : Screen(this, context),
-                                                       _isHighVizMode(isHighViz),
-                                                       _tallyStateChangedListener(this, &TallyScreen::handleTallyStateChanged),
-                                                       _tallyQuickplayDelegate(this, &TallyScreen::tallyQuickPlay),
-                                                       _tallyQuickplayDelayEvent(_tallyQuickplayDelegate, -1),
-                                                       _tallyQuickPlayDelayMs(tallyQuickPlayDelayMs)
+                                                                                            _isHighVizMode(isHighViz),
+                                                                                            _tallyStateChangedListener(this, &TallyScreen::handleTallyStateChanged),
+                                                                                            _tallyQuickplayDelegate(this, &TallyScreen::tallyQuickPlay),
+                                                                                            _tallyQuickplayDelayEvent(_tallyQuickplayDelegate, -1),
+                                                                                            _tallyQuickPlayDelayMs(tallyQuickPlayDelayMs)
 
     {
         this->_vmix = this->_context->getVmixManager();
@@ -75,19 +75,18 @@ public:
 
     void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
     {
-        // TODO render quickplay delay indicator
+        this->_tallyQuickplayDelayEvent.execute(timestamp);
         if (this->_tallyQuickPlayStartMillis != 0)
         {
             if (timestamp > this->_tallyQuickPlayEndMillis)
             {
-                // TODO and clear indicator
+                this->clearQuickPlayDelayIndicator();
                 this->_tallyQuickPlayStartMillis = 0;
                 this->_tallyQuickPlayEndMillis = 0;
             }
             else
             {
-                // TODO render indicator as a percentage
-                double pct = (timestamp - this->_tallyQuickPlayStartMillis) / this->_tallyQuickPlayDelayMs;
+                this->renderQuickPlayDelayIndicator(timestamp);
             }
         }
 
@@ -110,6 +109,7 @@ public:
             }
             else if (sideBtn.isLongClick())
             {
+                Serial.printf("Delaying quickplay event for %d...\n", this->_tallyQuickPlayDelayMs);
                 this->_tallyQuickPlayStartMillis = timestamp;
                 this->_tallyQuickPlayEndMillis = timestamp + this->_tallyQuickPlayDelayMs;
                 this->_tallyQuickplayDelayEvent.setNextExecute(this->_tallyQuickPlayEndMillis);
@@ -282,7 +282,51 @@ private:
 
     void tallyQuickPlay(unsigned long unused)
     {
+        Serial.println("DEBUG: TallyScreen::tallyQuickPlay");
         this->_vmix->sendQuickPlayInput(this->_tally);
+    }
+
+    void renderQuickPlayDelayIndicator(unsigned long timestamp)
+    {
+        int barWidth = LED_WIDTH * (timestamp - this->_tallyQuickPlayStartMillis) / this->_tallyQuickPlayDelayMs;
+        unsigned int color = WHITE;
+        if (this->_isHighVizMode)
+        {
+            if (this->_tallyState == TALLY_SAFE)
+            {
+                color = WHITE;
+            }
+            else if (this->_tallyState == TALLY_PRE)
+            {
+                color = RED;
+            }
+            else if (this->_tallyState == TALLY_LIVE)
+            {
+                color = WHITE;
+            }
+        }
+        M5.Lcd.fillRect(0, LED_HEIGHT - 10, barWidth, 10, color);
+    }
+
+    void clearQuickPlayDelayIndicator()
+    {
+        unsigned int color = BLACK;
+        if (this->_isHighVizMode)
+        {
+            if (this->_tallyState == TALLY_SAFE)
+            {
+                color = BLACK;
+            }
+            if (this->_tallyState == TALLY_PRE)
+            {
+                color = GREEN;
+            }
+            else if (this->_tallyState == TALLY_LIVE)
+            {
+                color = RED;
+            }
+        }
+        M5.Lcd.fillRect(0, LED_HEIGHT - 10, LED_WIDTH, 10, color);
     }
 
     bool _isHighVizMode;
@@ -292,8 +336,8 @@ private:
     MethodSlot<TallyScreen, unsigned long> _tallyQuickplayDelegate;
     SlotLoopEvent _tallyQuickplayDelayEvent;
     unsigned long _tallyQuickPlayDelayMs;
-    unsigned long _tallyQuickPlayStartMillis;
-    unsigned long _tallyQuickPlayEndMillis;
+    unsigned long _tallyQuickPlayStartMillis = 0;
+    unsigned long _tallyQuickPlayEndMillis = 0;
 
     VmixManager *_vmix;
     unsigned char _tallyState;

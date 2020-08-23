@@ -105,7 +105,7 @@ Using the IDE, compile and upload to your M5StickC.
       * [ ]  Side long-press?
       * [ ]  M5 long-press to exit brightness mode
     * [ ]  Side short-press?
-    * [ ]  Side long-press to QuickPlay after 1s delay
+    * [x]  Side long-press to QuickPlay after 3s delay
   * [x]  Settings screen
     * [x]  M5 short-press to switch to Tally screen
     * [ ]  M5 long-press to enter settings edit mode
