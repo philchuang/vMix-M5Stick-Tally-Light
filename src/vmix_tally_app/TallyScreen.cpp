@@ -16,9 +16,12 @@
 class TallyScreen : public Screen
 {
 public:
-    TallyScreen(AppContext &context, bool isHighViz) : Screen(this, context),
+    TallyScreen(AppContext &context, bool isHighViz, unsigned long tallyQuickPlayDelayMs) : Screen(this, context),
                                                        _isHighVizMode(isHighViz),
-                                                       _tallyStateChangedListener(this, &TallyScreen::handleTallyStateChanged)
+                                                       _tallyStateChangedListener(this, &TallyScreen::handleTallyStateChanged),
+                                                       _tallyQuickplayDelegate(this, &TallyScreen::tallyQuickPlay),
+                                                       _tallyQuickplayDelayEvent(_tallyQuickplayDelegate, -1),
+                                                       _tallyQuickPlayDelayMs(tallyQuickPlayDelayMs)
 
     {
         this->_vmix = this->_context->getVmixManager();
@@ -72,6 +75,22 @@ public:
 
     void handleInput(unsigned long timestamp, PinButton &m5Btn, PinButton &sideBtn)
     {
+        // TODO render quickplay delay indicator
+        if (this->_tallyQuickPlayStartMillis != 0)
+        {
+            if (timestamp > this->_tallyQuickPlayEndMillis)
+            {
+                // TODO and clear indicator
+                this->_tallyQuickPlayStartMillis = 0;
+                this->_tallyQuickPlayEndMillis = 0;
+            }
+            else
+            {
+                // TODO render indicator as a percentage
+                double pct = (timestamp - this->_tallyQuickPlayStartMillis) / this->_tallyQuickPlayDelayMs;
+            }
+        }
+
         if (this->_isLandscape)
         {
             if (m5Btn.isSingleClick())
@@ -91,7 +110,9 @@ public:
             }
             else if (sideBtn.isLongClick())
             {
-                this->_vmix->sendQuickPlayInput(this->_tally);
+                this->_tallyQuickPlayStartMillis = timestamp;
+                this->_tallyQuickPlayEndMillis = timestamp + this->_tallyQuickPlayDelayMs;
+                this->_tallyQuickplayDelayEvent.setNextExecute(this->_tallyQuickPlayEndMillis);
             }
         }
         else
@@ -259,10 +280,20 @@ private:
         this->_context->getBatteryManager()->setLedOn(isOn);
     }
 
+    void tallyQuickPlay(unsigned long unused)
+    {
+        this->_vmix->sendQuickPlayInput(this->_tally);
+    }
+
     bool _isHighVizMode;
     bool _isLandscape;
     bool _isShowing;
     MethodSlot<TallyScreen, char> _tallyStateChangedListener;
+    MethodSlot<TallyScreen, unsigned long> _tallyQuickplayDelegate;
+    SlotLoopEvent _tallyQuickplayDelayEvent;
+    unsigned long _tallyQuickPlayDelayMs;
+    unsigned long _tallyQuickPlayStartMillis;
+    unsigned long _tallyQuickPlayEndMillis;
 
     VmixManager *_vmix;
     unsigned char _tallyState;

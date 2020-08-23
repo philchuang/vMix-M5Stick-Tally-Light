@@ -77,11 +77,10 @@ Using the IDE, compile and upload to your M5StickC.
 
 ## TODO
 
-* [ ]  Store uptime info as current + last, copy from current to last on startup
+* [x]  Store uptime info as current + last, copy from current to last on startup
 * [ ]  Use Preferences.h instead of EEPROM.h for settings (maybe keep EEPROM for last used settings & tracking)
 * [ ]  Battery indicator on all screens
 * [ ]  Detect and indicate when battery is fully charged
-* [ ]  Battery logging
 * [ ]  Restore last used settings on boot (instead of just #1) OR ability to select settings on boot
 * [x]  Continued cleanup and refactor of logic - event-driven model
 * [ ]  Hard-reset capability from settings or error screen
@@ -99,7 +98,6 @@ Using the IDE, compile and upload to your M5StickC.
       * [x]  M5 short-press to switch to retry
       * [x]  Side short-press to cycle connection settings and retry
   * [x]  Tally screen
-    * [ ]  show status in landscape, number in portrait
     * [x]  M5 short-press to switch to Settings screen
     * [ ]  M5 long-press to enter brightness mode
       * [ ]  M5 short-press to cycle brightness
@@ -107,7 +105,7 @@ Using the IDE, compile and upload to your M5StickC.
       * [ ]  Side long-press?
       * [ ]  M5 long-press to exit brightness mode
     * [ ]  Side short-press?
-    * [ ]  Side long-press to QuickPlay after 1s delay 
+    * [ ]  Side long-press to QuickPlay after 1s delay
   * [x]  Settings screen
     * [x]  M5 short-press to switch to Tally screen
     * [ ]  M5 long-press to enter settings edit mode

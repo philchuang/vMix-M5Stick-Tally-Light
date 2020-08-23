@@ -64,7 +64,7 @@ struct ScreenManager::Impl
     ErrorScreen _errorScreen = ErrorScreen(*_context);
     SplashScreen _splashScreen = SplashScreen(*_context);
     ConnectingScreen _connectScreen = ConnectingScreen(*_context);
-    TallyScreen _tallyScreen = TallyScreen(*_context, HIGH_VIZ_MODE);
+    TallyScreen _tallyScreen = TallyScreen(*_context, HIGH_VIZ_MODE, VMIX_QUICKPLAY_DELAY);
     SettingsScreen _settingsScreen = SettingsScreen(*_context);
 
     MethodSlot<ScreenManager, unsigned long> _pollForceRefreshDelegate;
