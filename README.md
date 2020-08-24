@@ -1,5 +1,7 @@
 # vMix M5Stick-C Tally Light
 
+Version 0.91, 2020-08-23
+
 ## Tally in action
 
 (Click images to play video)
@@ -118,17 +120,17 @@ Using the IDE, compile and upload to your M5StickC.
 
 ## NOTES
 
-Runtime is 1h07m on LIVE/HIGH (red   bg & LED on)  @  60% brightness.
-Runtime is 1h05m on LIVE/LOW  (black bg & LED on)  @  60% brightness.
-Runtime is 1h39m on LIVE/LOW  (black bg & LED off) @  60% brightness.
-Runtime is 1h00m on LIVE/LOW  (black bg & LED on)  @ 100% brightness.
+Runtime (pre-0.9)
 
-Runtime is 1h11m on PRE/HIGH (green bg) @  60% brightness.
-Runtime is 1h37m on PRE/LOW  (black bg) @  60% brightness.
-Runtime is 1h20m on PRE/LOW  (black bg) @ 100% brightness.
-
-Runtime is 2h02m on SAFE/LOW (black bg) @  60% brightness.
-Runtime is 1h20m on SAFE/LOW (black bg) @ 100% brightness.
+* 1h07m on LIVE/HIGH (red   bg & LED on)  @  60% brightness.
+* 1h05m on LIVE/LOW  (black bg & LED on)  @  60% brightness.
+* 1h39m on LIVE/LOW  (black bg & LED off) @  60% brightness.
+* 1h00m on LIVE/LOW  (black bg & LED on)  @ 100% brightness.
+* 1h11m on PRE/HIGH (green bg) @  60% brightness.
+* 1h37m on PRE/LOW  (black bg) @  60% brightness.
+* 1h20m on PRE/LOW  (black bg) @ 100% brightness.
+* 2h02m on SAFE/LOW (black bg) @  60% brightness.
+* 1h20m on SAFE/LOW (black bg) @ 100% brightness.
 
 ## Thanks
 
