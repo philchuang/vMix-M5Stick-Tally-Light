@@ -7,11 +7,11 @@ class SlotLoopEvent
 {
     Slot<unsigned long> *_slot;
     // if _intervalMs = 0, execute all the time, if _intervalMs < 0 then execute only when setNextExecute is used
-    unsigned int _intervalMs;
+    int _intervalMs;
     unsigned long _nextExecution = 0;
 
 public:
-    SlotLoopEvent(const Slot<unsigned long> &slot, unsigned int intervalMs) : _slot(slot.clone()), _intervalMs(intervalMs)
+    SlotLoopEvent(const Slot<unsigned long> &slot, int intervalMs) : _slot(slot.clone()), _intervalMs(intervalMs)
     {
     }
 

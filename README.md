@@ -1,5 +1,7 @@
 # vMix M5Stick-C Tally Light
 
+Version 0.91, 2020-08-23
+
 ## Tally in action
 
 (Click images to play video)
@@ -71,12 +73,16 @@ Using the IDE, compile and upload to your M5StickC.
     1. M5 button single-click: display the tally status screen
     1. Side button long-click: load next settings and restart
 
+## ISSUES
+
+1. Screen does not indicate when vmix/wifi is disconnected and reconnection is being attempted.
+
 ## TODO
 
+* [x]  Store uptime info as current + last, copy from current to last on startup
 * [ ]  Use Preferences.h instead of EEPROM.h for settings (maybe keep EEPROM for last used settings & tracking)
 * [ ]  Battery indicator on all screens
 * [ ]  Detect and indicate when battery is fully charged
-* [ ]  Battery logging
 * [ ]  Restore last used settings on boot (instead of just #1) OR ability to select settings on boot
 * [x]  Continued cleanup and refactor of logic - event-driven model
 * [ ]  Hard-reset capability from settings or error screen
@@ -94,7 +100,6 @@ Using the IDE, compile and upload to your M5StickC.
       * [x]  M5 short-press to switch to retry
       * [x]  Side short-press to cycle connection settings and retry
   * [x]  Tally screen
-    * [ ]  show status in landscape, number in portrait
     * [x]  M5 short-press to switch to Settings screen
     * [ ]  M5 long-press to enter brightness mode
       * [ ]  M5 short-press to cycle brightness
@@ -102,7 +107,7 @@ Using the IDE, compile and upload to your M5StickC.
       * [ ]  Side long-press?
       * [ ]  M5 long-press to exit brightness mode
     * [ ]  Side short-press?
-    * [ ]  Side long-press to QuickPlay after 1s delay 
+    * [x]  Side long-press to QuickPlay after 3s delay
   * [x]  Settings screen
     * [x]  M5 short-press to switch to Tally screen
     * [ ]  M5 long-press to enter settings edit mode
@@ -115,17 +120,17 @@ Using the IDE, compile and upload to your M5StickC.
 
 ## NOTES
 
-Runtime is 1h07m on LIVE/HIGH (red   bg & LED on)  @  60% brightness.
-Runtime is 1h05m on LIVE/LOW  (black bg & LED on)  @  60% brightness.
-Runtime is 1h39m on LIVE/LOW  (black bg & LED off) @  60% brightness.
-Runtime is 1h00m on LIVE/LOW  (black bg & LED on)  @ 100% brightness.
+Runtime (pre-0.9)
 
-Runtime is 1h11m on PRE/HIGH (green bg) @  60% brightness.
-Runtime is 1h37m on PRE/LOW  (black bg) @  60% brightness.
-Runtime is 1h20m on PRE/LOW  (black bg) @ 100% brightness.
-
-Runtime is 2h02m on SAFE/LOW (black bg) @  60% brightness.
-Runtime is 1h20m on SAFE/LOW (black bg) @ 100% brightness.
+* 1h07m on LIVE/HIGH (red   bg & LED on)  @  60% brightness.
+* 1h05m on LIVE/LOW  (black bg & LED on)  @  60% brightness.
+* 1h39m on LIVE/LOW  (black bg & LED off) @  60% brightness.
+* 1h00m on LIVE/LOW  (black bg & LED on)  @ 100% brightness.
+* 1h11m on PRE/HIGH (green bg) @  60% brightness.
+* 1h37m on PRE/LOW  (black bg) @  60% brightness.
+* 1h20m on PRE/LOW  (black bg) @ 100% brightness.
+* 2h02m on SAFE/LOW (black bg) @  60% brightness.
+* 1h20m on SAFE/LOW (black bg) @ 100% brightness.
 
 ## Thanks
 

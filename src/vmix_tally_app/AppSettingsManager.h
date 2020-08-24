@@ -20,10 +20,12 @@ public:
     void clear(unsigned short settingsIdx);
     unsigned short getNumSettings();
     
-     // TEMPORARY
+    void saveLastUptimeInfo(unsigned long uptime, double batteryLevel);
     void saveUptimeInfo(unsigned long uptime, double batteryLevel);
     unsigned long getLastUptime();
+    unsigned long getUptime();
     double getLastBatteryLevel();
+    double getBatteryLevel();
 
 private:
     class Impl;

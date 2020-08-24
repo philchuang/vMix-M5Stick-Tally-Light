@@ -35,6 +35,10 @@ AppSettingsManager::~AppSettingsManager() = default;
 void AppSettingsManager::begin()
 {
     EEPROM.begin(_pimpl->_eepromSize);
+
+    auto uptime = this->getUptime();
+    auto level = this->getBatteryLevel();
+    this->saveLastUptimeInfo(uptime, level);
 }
 
 AppSettings AppSettingsManager::load(unsigned short settingsIdx)
@@ -104,6 +108,8 @@ void AppSettingsManager::clear(unsigned short settingsIdx)
         ptr += 8;
     }
 
+    this->saveUptimeInfo(0, 0);
+
     EEPROM.commit();
 }
 
@@ -116,16 +122,30 @@ unsigned short AppSettingsManager::getNumSettings()
 
 void AppSettingsManager::saveUptimeInfo(unsigned long uptime, double batteryLevel)
 {
-    // save at the top 8 bytes
     unsigned long ptr = _pimpl->_eepromSize - 12;
     EEPROM.writeULong(ptr, uptime);
     ptr += 4;
     EEPROM.writeUInt(ptr, (unsigned int) batteryLevel);
-    unsigned int temp = EEPROM.readUInt(ptr);
+    EEPROM.commit();
+}
+
+void AppSettingsManager::saveLastUptimeInfo(unsigned long uptime, double batteryLevel)
+{
+    unsigned long ptr = _pimpl->_eepromSize - 20;
+    EEPROM.writeULong(ptr, uptime);
+    ptr += 4;
+    EEPROM.writeUInt(ptr, (unsigned int) batteryLevel);
     EEPROM.commit();
 }
 
 unsigned long AppSettingsManager::getLastUptime()
+{
+    unsigned long ptr = _pimpl->_eepromSize - 20;
+    unsigned long uptime = EEPROM.readULong(ptr);
+    return uptime;
+}
+
+unsigned long AppSettingsManager::getUptime()
 {
     unsigned long ptr = _pimpl->_eepromSize - 12;
     unsigned long uptime = EEPROM.readULong(ptr);
@@ -133,6 +153,13 @@ unsigned long AppSettingsManager::getLastUptime()
 }
 
 double AppSettingsManager::getLastBatteryLevel()
+{
+    unsigned long ptr = _pimpl->_eepromSize - 20 + 4;
+    unsigned int batteryLevel = EEPROM.readUInt(ptr);
+    return (double) batteryLevel;
+}
+
+double AppSettingsManager::getBatteryLevel()
 {
     unsigned long ptr = _pimpl->_eepromSize - 12 + 4;
     unsigned int batteryLevel = EEPROM.readUInt(ptr);

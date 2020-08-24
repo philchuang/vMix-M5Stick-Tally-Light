@@ -23,7 +23,6 @@
 #include "BatteryManager.h"
 #include "Constants.h"
 #include "Configuration.h"
-#include "LoopEvent.h"
 #include "OrientationManager.h"
 #include "Screen.h"
 #include "ScreenManager.h"
@@ -39,7 +38,6 @@ AppContext _context;
 ScreenManager _screenMgr(_context, MAX_SCREENS);
 PinButton btnM5(BTN_M5);
 PinButton btnSide(BTN_SIDE);
-bool _saveUptimeInfo = false; // TEMPORARY
 
 void setup()
 {
@@ -54,23 +52,6 @@ void setup()
     initSettings();
 
     initScreens();
-
-    if (LOG_BATTERY)
-    {
-        if (PREPARE_BATTERY_LOGGING)
-        {
-            _context.getSettingsManager()->saveUptimeInfo(0, 0);
-            _saveUptimeInfo = false;
-        }
-        else
-        {
-            delay(10000);
-        }
-        if (_context.getSettingsManager()->getLastUptime() != 0)
-        {
-            _saveUptimeInfo = false;
-        }
-    }
 
     _screenMgr.show(SCREEN_SPLASH);
 }
@@ -123,7 +104,6 @@ void initSettings()
         {
             settingsMgr->clear(i);
         }
-        settingsMgr->saveUptimeInfo(0, 0);
 
         Serial.println("EEPROM cleared.");
     }

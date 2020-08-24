@@ -292,10 +292,7 @@ void AppContext::checkIsCharging(unsigned long timestamp)
 void AppContext::checkBatteryLevel(unsigned long timestamp)
 {
     this->setBatteryLevel(_pimpl->_batteryMgr.getBatteryLevel());
-    // if (LOG_BATTERY && _pimpl->_saveUptimeInfo)
-    // {
-    //     this->getSettingsManager()->saveUptimeInfo(millis(), this->getBatteryLevel());
-    // }
+    this->getSettingsManager()->saveUptimeInfo(millis(), this->getBatteryLevel());
 }
 
 void AppContext::addLoopEvent(SlotLoopEvent *event)
